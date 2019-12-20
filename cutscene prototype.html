@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+      }
+
+      button:focus {
+        outline: 0 !important;
+      }
+
+      button::-moz-focus-inner {
+        border: 0;
+      }
+
+      button:active {
+        padding: 0px;
+      }
+
+      .cButton {
+        font-family: Arial;
+        font-size: 20pt;
+        opacity: 0.4;
+        color: #FFF;
+        background-color: transparent;
+        border: 0;
+        cursor: pointer;
+        width: 35px;
+        height: 35px;
+        border-radius: 4px;
+      }
+
+      .cButton:hover {
+        opacity: 1;
+        transition: opacity 0.1s, box-shadow 0.1s;
+      }
+
+      .cButton:active {
+        box-shadow: 0 0 0 0.25rem rgba(255, 255, 255, 0.3);
+        transition: box-shadow 0.05s;
+      }
+
+      .cContainer {
+        display: flex;
+        flex-wrap: wrap;
+        width: 100vw;
+        height: 100vh;
+      }
+
+      .cContainer .cViewport {
+        flex-grow: 1;
+        display: flex;
+        align-items: center;
+
+        background-color: #000;
+      }
+
+      .cViewport .cCanvasContainer {
+        margin: auto;
+        background-color: #AAAAFF;
+      }
+
+      .cCanvasContainer .cCanvasToolbar {
+        position: relative;
+        height: 100%;
+      }
+
+      .cCanvasToolbar .collection1 {
+        position: absolute;
+        bottom: 10px;
+        width: 100%;
+        text-align: center;
+      }
+
+      .cCanvasToolbar .collection2 {
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+      }
+      
+      .cCanvasToolbar .collection3 {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+      }
+
+      .cCanvasToolbar .collection4 {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+      }
+
+      .cContainer .cViewer {
+        width: 400px;
+        height: 500px;
+
+        background-color: #555;
+      }
+
+      .cContainer .cTimelineResizer {
+        width: 100%;
+        height: 5px;
+        background-color: #FFF;
+        cursor: row-resize;
+      }
+
+      .cContainer .cTimeline {
+        width: 100%;
+        height: 300px;
+        overflow: auto;
+
+        background-color: #222;
+      }
+
+      .cContainer .cToolbar {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        height: 30px;
+        background-color: #111;
+      }
+
+      .cTimeline .cTrack {
+        width: 100%;
+        height: 100px;
+        display: flex;
+        border-bottom: 2px solid #666;
+      }
+
+      .cTrack .info {
+        width: 300px;
+        height: 100%;
+        display: flex;
+      }
+
+      .cTrack .info .text {
+        height: 100%;
+        padding: 10px;
+        flex-grow: 1;
+        font-family: Arial;
+        font-size: 14pt;
+        color: #FFF;
+      }
+
+      .cTrack .info .buttons {
+        width: 40px;
+        height: 100%;
+        box-sizing: border-box;
+        padding-top: 5px;
+      }
+
+      .cTrack .track {
+        flex-grow: 1;
+        background-color: #333;
+        position: relative;
+      }
+
+      .cTrack .track hr {
+        width: 100%;
+        border: 1px solid #AAA;
+        transform: translate(0%, -50%);
+        position: absolute;
+        top: 50%;
+        margin: 0;
+        padding: 0;
+      }
+
+      .cTrack .track hr.dashed {
+        border-style: dashed;
+      }
+
+      .cTrack .track .block {
+        height: 50px;
+        border-radius: 2px;
+        background-color: #FFF;
+        position: absolute;
+        z-index: 1000;
+        top: 50%;
+        transform: translate(0%, -50%);
+        transform-style: preserve-3d;
+        box-sizing: border-box;
+        color: #000;
+        font-size: 10pt;
+        padding: 4px;
+        border: 2px solid black;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="cContainer">
+      <div class="cViewport" id="cViewport">
+        <div class="cCanvasContainer" id="cCanvasContainer">
+          <div class="cCanvasToolbar" id="cCanvasToolbar">
+            <div class="collection1">
+              <button class="cButton">a</button>
+              <button class="cButton">b</button>
+              <button class="cButton">c</button>
+            </div>
+
+            <div class="collection2">
+              <button class="cButton">a</button>
+            </div>
+
+            <div class="collection3">
+              <button class="cButton">N</button>
+              <button class="cButton">L</button>
+              <button class="cButton">S</button>
+            </div>
+
+            <div class="collection4">
+              <button class="cButton">s</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cViewer" id="cViewer">
+
+      </div>
+
+      <div class="cTimelineResizer" id="cTimelineResizer"></div>
+
+      <div class="cToolbar" id="cToolbar"></div>
+
+      <div class="cTimeline" id="cTimeline">
+        <div class="cTrack">
+          <div class="info">
+            <div class="text">
+              info
+            </div>
+            <div class="buttons">
+              <button class="cButton">+</button>
+              <button class="cButton">&times;</button>
+            </div>
+          </div>
+          <div class="track">
+            <hr />
+
+            <div class="block" style="width: 500px; left: 50px;">Hello.</div>
+          </div>
+        </div>
+
+        <div class="cTrack">
+          <div class="info">
+            <div class="text">
+              info
+            </div>
+            <div class="buttons">
+              <button class="cButton">+</button>
+              <button class="cButton">&times;</button>
+            </div>
+          </div>
+          <div class="track">
+            <hr />
+          </div>
+        </div>
+
+        <div class="cTrack">
+          <div class="info">
+            <div class="text">
+              info
+            </div>
+            <div class="buttons">
+              <button class="cButton">+</button>
+              <button class="cButton">&times;</button>
+            </div>
+          </div>
+          <div class="track">
+            <hr />
+          </div>
+        </div>
+      </div>
+  </body>
+
+  <script>
+    function resize() {
+      let cCanvasContainer = document.getElementById("cCanvasContainer")
+      
+      // first, calculate the height of the elements above the local timeline
+      let upperHeight = Math.max(0, window.innerHeight - document.getElementById("cTimeline").clientHeight - document.getElementById("cTimelineResizer").clientHeight - document.getElementById("cToolbar").clientHeight)
+      document.getElementById("cViewport").style.height = `${upperHeight}px`
+      document.getElementById("cViewer").style.height = `${upperHeight}px`
+
+      // figure out the aspect ratio
+      let aspectRatio = 16 / 9
+      let widthLimit = window.innerWidth - document.getElementById("cViewer").clientWidth
+      let canvasWidth = Math.max(0, aspectRatio * upperHeight)
+      if(canvasWidth > widthLimit) {
+        let canvasHeight = widthLimit / aspectRatio
+        cCanvasContainer.style.width = `${widthLimit}px`
+        cCanvasContainer.style.height = `${canvasHeight}px`
+      }
+      else {
+        cCanvasContainer.style.width = `${canvasWidth}px`
+        cCanvasContainer.style.height = `${upperHeight}px`
+      }
+
+      if(parseInt(cCanvasContainer.style.width) < 150) {
+        document.getElementById("cCanvasToolbar").style.display = "none"
+      }
+      else {
+        document.getElementById("cCanvasToolbar").style.display = "block"
+      }
+    }
+
+    function resizeTimeline() {
+      let dom = document.getElementById("cTimelineResizer")
+      let height = Math.min(window.innerHeight, window.innerHeight - dom.y - dom.clientHeight)
+      document.getElementById("cTimeline").style.height = `${height}px`
+      
+      resize()
+    }
+
+    document.getElementById("cTimelineResizer").addEventListener("mousedown", function(event) {
+      this.isResizing = true
+      this.x = event.clientX
+      this.y = event.clientY
+
+      resizeTimeline()
+    })
+
+    document.addEventListener("mouseup", (event) => {
+      document.getElementById("cTimelineResizer").isResizing = false
+    })
+
+    document.addEventListener("mousemove", (event) => {
+      let dom = document.getElementById("cTimelineResizer")
+      if(dom.isResizing) {
+        resizeTimeline()
+        dom.x = event.clientX
+        dom.y = event.clientY
+      }
+    })
+
+    window.addEventListener("resize", (event) => {
+      resize()
+    })
+    resize()
+  </script>
+</html>
