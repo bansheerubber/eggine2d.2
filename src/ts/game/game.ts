@@ -6,7 +6,6 @@ import ServerNetwork from "../network/serverNetwork";
 import GameRenderer from "../render/gameRenderer";
 import Debug from "./debug";
 import GameCollision from "../collision/gameCollision";
-import TestRemoteObject from "../custom/testRemoteObject";
 import Gamemode from "./gamemode";
 import Client from "../network/client";
 
@@ -18,7 +17,7 @@ export default class Game {
 	// third digit increments by 1 for every gameplay test we do that has changed code from the last. sort of works like a revision versioning system. this digit resets for every minor release
 	// example, politics:0.0.1
 	// version is stored in the game config
-	public version: string = "testtype:0.0.0"
+	public version: string = "eggine2d:0.0.0"
 
 	public ticker: GameTicker = new GameTicker(this)
 	public renderer: GameRenderer
@@ -50,11 +49,12 @@ export default class Game {
 				let xScale = 1.25
 				let yScale = 0.5
 				
-				console.log("%c ", "font-size: 1px; padding: " + Math.floor(image.height * yScale / 2) + "px " + Math.floor(image.width * xScale / 2) + "px; background: url('./data/egg.png'); background-size: " + (image.width * xScale) + "px " + (image.height * yScale) + "px; color: transparent; background-repeat: no-repeat;")
+				console.log("%c ", "font-size: 1px; padding: " + Math.floor(image.height * yScale / 2) + "px " + Math.floor(image.width * xScale / 2) + "px; background: url('https://bansheerubber.com/egg.png'); background-size: " + (image.width * xScale) + "px " + (image.height * yScale) + "px; color: transparent; background-repeat: no-repeat;")
 				
 				console.log(`%cpowered by eggine mk3 (${this.version})`, "font-size: 15pt; font-weight: bold;")
+				console.log("%cwith love, bansheerubber", "font-style: italic; text-align: center;")
 			}
-			image.src = "./data/egg.png"
+			image.src = "https://bansheerubber.com/egg.png"
 		}
 		else {
 			this.network = new ServerNetwork(this)

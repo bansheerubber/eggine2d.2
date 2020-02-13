@@ -142,7 +142,15 @@ export default class RemoteMethod {
 	// makes the client request the server to call this remote method on the input object
 	public requestToServer(remoteObject: RemoteObject, ...args: any[]): void {
 		if(remoteObject.game.isClient && this.isServerMethod) {
-			(remoteObject.game.network as ClientNetwork).requestServerMethod(remoteObject.remoteID, this.id, args)
+			let methodID = -1
+			for(let remoteMethod of remoteObject.getNetworkMetadata().remoteMethods) {
+				if(this.call == remoteMethod.call) {
+					methodID = remoteMethod.id
+					break
+				}
+			}
+			
+			(remoteObject.game.network as ClientNetwork).requestServerMethod(remoteObject.remoteID, methodID, args)
 			
 			if(this.isInstantCall) {
 				this.call.apply(remoteObject, args)
@@ -153,7 +161,15 @@ export default class RemoteMethod {
 	// makes the server request all clients to call this remote method on the input object
 	public requestToClients(remoteObject: RemoteObject, onlyCallOnOwner: boolean, ...args: any[]): void {
 		if(remoteObject.game.isServer && this.isClientMethod) {
-			(remoteObject.game.network as ServerNetwork).requestClientMethod(remoteObject, remoteObject.remoteID, this.id, onlyCallOnOwner, args)
+			let methodID = -1
+			for(let remoteMethod of remoteObject.getNetworkMetadata().remoteMethods) {
+				if(this.call == remoteMethod.call) {
+					methodID = remoteMethod.id
+					break
+				}
+			}
+			
+			(remoteObject.game.network as ServerNetwork).requestClientMethod(remoteObject, remoteObject.remoteID, methodID, onlyCallOnOwner, args)
 
 			if(this.isInstantCall) {
 				this.call.apply(remoteObject, args)

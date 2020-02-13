@@ -61,7 +61,7 @@ export default class GameTicker {
 		this.lastTickTime = performance.now() - tickTime
 
 		// tick renderer
-		if(this.game.renderer) {
+		if(this.game.renderer && this.game.renderer.enabled) {
 			var renderTime = performance.now()
 			this.game.renderer.tick(usedDeltaTime * this.timescale)
 			this.lastRenderTime = performance.now() - renderTime

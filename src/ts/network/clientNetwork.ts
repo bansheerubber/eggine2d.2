@@ -4,6 +4,7 @@ import Game from "../game/game";
 import RemoteObject from "./remoteObject";
 import { RemoteMethodPayload, RemoteReturnPayload, ClientRemoteReturn } from "./remoteMethod";
 import Client from "./client";
+import { ServerNetworkHost } from "./serverNetwork";
 
 // handles the websocket connection for a ClientNetwork instance
 class ClientNetworkConnection {
@@ -19,7 +20,7 @@ class ClientNetworkConnection {
 	constructor(network: ClientNetwork) {
 		this.network = network
 
-		this.connect("ws://localhost:7000")
+		this.connect("wss://bansheerubber.com:" + ServerNetworkHost.port)
 	}
 
 	// connect to the server
@@ -197,6 +198,7 @@ export default class ClientNetwork extends NetworkBase {
 
 		if(this.remoteObjects[objectID]) {
 			let object = this.remoteObjects[objectID]
+
 			// make sure we're the client and we have an actual remote method to call in the first place
 			if(this.game.isClient && object.getNetworkMetadata().remoteMethods[methodID]) {
 				let data = object.getNetworkMetadata().remoteMethods[methodID].receiveFromServer(object, ...args)

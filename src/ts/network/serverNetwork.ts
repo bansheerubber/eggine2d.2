@@ -11,9 +11,9 @@ const ws = require("ws")
 const https = require("https")
 
 // handles the ws server
-class ServerNetworkHost {
+export class ServerNetworkHost {
 	public network: ServerNetwork
-	public port: number = 7000
+	public static port: number = 8329
 	public publicIP: string = "N/A"
 	public isSecure: boolean = false
 	public server: any
@@ -21,20 +21,18 @@ class ServerNetworkHost {
 	constructor(network: ServerNetwork) {
 		this.network = network
 
-		this.listen(this.port)
+		this.listen(ServerNetworkHost.port, "/etc/letsencrypt/live/bansheerubber.com/fullchain.pem", "/etc/letsencrypt/live/bansheerubber.com/privkey.pem")
 	}
 
-	public listen(port: number, certificatePath?: string, keyPath?: string, certificateAuthorityPath?: string): void {
+	public listen(port: number, certificatePath?: string, keyPath?: string): void {
 		// if we have valid certification info, then construct partial options
-		if(certificatePath && fs.existsSync(certificatePath) && fs.lstatSync(certificatePath).isFile() // make sure certificate path exists
-			&& keyPath && fs.existsSync(keyPath) && fs.lstatSync(keyPath).isFile() // make sure key path exists
-			&& certificateAuthorityPath && fs.existsSync(certificateAuthorityPath) && fs.lstatSync(certificateAuthorityPath)) { // make sure certificate authority path exists
+		if(certificatePath && fs.existsSync(certificatePath) // make sure certificate path exists
+			&& keyPath && fs.existsSync(keyPath)) { // make sure key path exists
 
 			// create a https server with the different certificates
 			const httpsServer = new https.createServer({
 				cert: fs.readFileSync(certificatePath),
 				key: fs.readFileSync(keyPath),
-				ca: fs.readFileSync(certificateAuthorityPath)
 			})
 
 			var partialOptions: any = {
@@ -44,6 +42,8 @@ class ServerNetworkHost {
 			httpsServer.listen(port)
 
 			this.isSecure = true
+
+			console.log("Secure server is being hosted.")
 		}
 		else {
 			if(certificatePath || keyPath) {
@@ -79,7 +79,7 @@ class ServerNetworkHost {
 
 		this.server = new ws.Server(options)
 
-		console.log(`Server listening on port ${this.port}...`)
+		console.log(`Server listening on port ${port}...`)
 
 		// handle a connection
 		this.server.on("connection", (connection: WebSocket, request: any) => {

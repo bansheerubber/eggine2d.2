@@ -10,6 +10,8 @@ export default class Vector {
 
 	private matterVector: Matter.Vector
 
+
+	
 	constructor(x: number = 0, y: number = 0) {
 		this.x = x
 		this.y = y
@@ -147,5 +149,10 @@ export default class Vector {
 		this.matterVector.y = this.y
 
 		return this.matterVector
+	}
+
+	// turns a positive x,y coordinate into a unique, single number
+	public unique(): number {
+		return ((this.x + this.y) * (this.x + this.y + 1)) / 2 + this.y
 	}
 }

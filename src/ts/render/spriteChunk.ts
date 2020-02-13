@@ -5,12 +5,15 @@ import Vector from "../helpers/vector";
 import Range from "../helpers/range";
 import { RGBColor, HSVColor } from "../helpers/color";
 import * as PIXI from "pixi.js"
+import { ScheduleObject, Frames } from "../game/scheduler";
 
 export default class SpriteChunk extends GameObject {
 	public position: Vector
 	public chunkPosition: Vector
 	public sprites: Set<Sprite> = new Set<Sprite>()
+	public container: PIXI.Container = new PIXI.Container()
 	public isVisible: boolean = true
+	public cachable: boolean
 
 	private sortedSpritesX: Sprite[] = [] // sorted by distance of sprite's bottom corner to the screen position of the chunk, highest is last
 	private sortedSpritesY: Sprite[] = [] // sorted by distance of sprite's bottom corner to the screen position of the chunk, highest is last
@@ -19,21 +22,24 @@ export default class SpriteChunk extends GameObject {
 	private graphics: PIXI.Graphics
 	private color: RGBColor
 	
-	public static size: number = 3000 // how many pixels wide/tall the chunk is
+	public static size: number = 1500 // how many pixels wide/tall the chunk is
 	private static debug: boolean = false
 
 
 
-	constructor(game: Game, chunkPosition: Vector) {
+	constructor(game: Game, chunkPosition: Vector, parentContainer: PIXI.Container, cachable: boolean = false) {
 		super(game)
 		this.chunkPosition = chunkPosition
 		this.position = this.chunkPosition.mul_(SpriteChunk.size)
 		this.maxBoundary = this.position.clone()
+		this.cachable = cachable
+
+		parentContainer.addChild(this.container)
 
 		if(SpriteChunk.debug) {
 			this.graphics = new PIXI.Graphics()
 			this.color = (new HSVColor(Range.getRandomDec(0, 1), 1, 1)).toRGB()
-			this.game.renderer.dynamic.addChild(this.graphics)
+			this.game.renderer.debug.addChild(this.graphics)
 		}
 	}
 
@@ -43,26 +49,26 @@ export default class SpriteChunk extends GameObject {
 		let isOnScreen = this.game.renderer.camera.showsBox(this.minBoundary, this.maxBoundary.x - this.minBoundary.x, this.maxBoundary.y - this.minBoundary.y)
 		if(isOnScreen && !this.isVisible) {
 			this.isVisible = true
-
-			for(let sprite of this.sprites.values()) {
-				sprite.isVisible = true
-			}
+			this.container.visible = true
 		}
 		else if(!isOnScreen && this.isVisible) {
 			this.isVisible = false
-
-			for(let sprite of this.sprites.values()) {
-				sprite.isVisible = false
-			}
+			this.container.visible = false
 		}
 
 		if(this.graphics) { 
 			this.graphics.clear()
 
-			this.graphics.lineStyle(1 * 1 / this.game.renderer.camera.zoom, this.color.toHex())
+			this.graphics.lineStyle(5 / this.game.renderer.camera.zoom, this.color.toHex())
 			this.graphics.beginFill(0x000000, 0)
 			this.graphics.drawRect(this.minBoundary.x, this.minBoundary.y, this.maxBoundary.x - this.minBoundary.x, this.maxBoundary.y - this.minBoundary.y)
 			this.graphics.endFill()
+		}
+
+		if(this.cachable && !this.container.cacheAsBitmap) {
+			new ScheduleObject(this.game.ticker.scheduler, this, () => {
+				this.container.cacheAsBitmap = true
+			}, [], new Frames(0)).execute() // reengage the cache the next frame
 		}
 	}
 
@@ -136,6 +142,13 @@ export default class SpriteChunk extends GameObject {
 			addToSortedListY(0, this.sortedSpritesY.length)
 		}
 		this.recalcBoundary()
+
+		// pixijs operations
+		this.container.addChild(sprite.sprite)
+
+		if(this.cachable) {
+			this.container.cacheAsBitmap = false
+		}
 	}
 
 	public remove(sprite: Sprite): void {
@@ -143,6 +156,12 @@ export default class SpriteChunk extends GameObject {
 		this.sortedSpritesX.splice(this.sortedSpritesX.indexOf(sprite), 1)
 		this.sortedSpritesY.splice(this.sortedSpritesY.indexOf(sprite), 1)
 		this.recalcBoundary()
+
+		// pixijs operations
+		this.container.removeChild(sprite.sprite)
+		if(this.cachable) {
+			this.container.cacheAsBitmap = false
+		}
 	}
 
 	// updates a sprites position within the chunk

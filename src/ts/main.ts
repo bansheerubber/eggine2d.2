@@ -15,8 +15,6 @@ import main from "./custom/main";
 import Vector from "./helpers/vector";
 import VectorInterpolation, { SmoothVectorInterpolation } from "./helpers/vectorInterpolation";
 import ScalarInterpolation, { SmoothScalarInterpolation } from "./helpers/scalarInterpolation";
-import TestRemoteObject from "./custom/testRemoteObject";
-import ShadowLight from "./render/lights/shadowLight";
 
 (async function() {
 	let game = new Game(typeof window != "undefined")
@@ -40,29 +38,5 @@ import ShadowLight from "./render/lights/shadowLight";
 		window["SmoothVectorInterpolation"] = SmoothVectorInterpolation
 		window["ScalarInterpolation"] = ScalarInterpolation
 		window["SmoothScalarInterpolation"] = SmoothScalarInterpolation
-		window["ShadowLight"] = ShadowLight
-
-		window["test"] = async function(object1: TestRemoteObject, object2: TestRemoteObject) {
-			object1.serverTest(25, "frog", object2)
-				
-			try {
-				let value = await object1.getRemoteReturn()
-				console.log(value, "egg")
-			}
-			catch(error) {
-				console.log(error)
-			}
-		}
 	}
 })()
-
-/*
-try {
-	(this.game.network as ServerNetwork).getLastRemoteReturns().promise.then((value: ServerResolve[]) => {
-		console.log(value)
-	})
-}
-catch(error) {
-	console.log(error)
-}
-*/

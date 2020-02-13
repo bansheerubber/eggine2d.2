@@ -2,9 +2,9 @@ import * as PIXI from "pixi.js"
 import Game from "../game/game";
 import Camera from "./camera";
 import RenderObject from "./renderObject";
-import ShadowLight, { ShadowMapGenerator } from "./lights/shadowLight";
 import SpriteChunk from "./spriteChunk";
 import SpriteChunkSet from "./spriteChunkSet";
+import ShadowLight, { ShadowMapGenerator } from "./lights/shadowLight";
 
 export default class GameRenderer {
 	public game: Game
@@ -12,13 +12,17 @@ export default class GameRenderer {
 	public objects: RenderObject[] = []
 
 	public dynamic: PIXI.Container = new PIXI.Container() // moves with a camera
+	public hex: PIXI.Container = new PIXI.Container() // hex map
 	public shadowMasks: PIXI.Container = new PIXI.Container() // contains all the masks used to make the shadow sprites
 	public shadows: PIXI.Container = new PIXI.Container() // contains all the shadow sprites
 	public static: PIXI.Container = new PIXI.Container() // does not move with a camera
+	public debug: PIXI.Container = new PIXI.Container() // moves with the camera
 
 	public chunks: Map<PIXI.Container, SpriteChunkSet> = new Map<PIXI.Container, SpriteChunkSet>()
 
 	public shadowLights: Set<ShadowLight> = new Set<ShadowLight>()
+
+	public enabled: boolean = true
 
 	private _camera: Camera
 
@@ -41,10 +45,13 @@ export default class GameRenderer {
 		
 		this.pixiApp.stage.addChild(this.shadows)
 		this.pixiApp.stage.addChild(this.dynamic)
+		this.pixiApp.stage.addChild(this.hex)
 		this.pixiApp.stage.addChild(this.static)
+		this.pixiApp.stage.addChild(this.debug)
 
-		/*this.chunks.set(this.dynamic, new SpriteChunkSet())
-		this.chunks.set(this.shadowMasks, new SpriteChunkSet())*/
+		this.chunks.set(this.dynamic, new SpriteChunkSet(this.dynamic))
+		this.chunks.set(this.shadowMasks, new SpriteChunkSet(this.shadowMasks))
+		this.chunks.set(this.hex, new SpriteChunkSet(this.hex, true))
 
 		this.shadowMasks.filters = [new ShadowMapGenerator(this.game)] // add shadow map generation filter to shadowmasks
 
@@ -82,6 +89,24 @@ export default class GameRenderer {
 		this.dynamic.scale.y = zoom
 
 		this.dynamic.rotation = rotation
+
+
+		this.debug.pivot.x = x
+		this.debug.pivot.y = y
+
+		this.debug.scale.x = zoom
+		this.debug.scale.y = zoom
+
+		this.debug.rotation = rotation
+
+
+		this.hex.pivot.x = x
+		this.hex.pivot.y = y
+
+		this.hex.scale.x = zoom
+		this.hex.scale.y = zoom
+
+		this.hex.rotation = rotation
 
 		
 		this.shadowMasks.pivot.x = x
@@ -129,12 +154,17 @@ export default class GameRenderer {
 		let canvas = document.getElementById("canvas") as HTMLCanvasElement
 		let gl = canvas.getContext("webgl2") as WebGLRenderingContext
 		
-		let dbgRenderInfo = gl.getExtension("WEBGL_debug_renderer_info")
-		if(dbgRenderInfo != null)  {
-			gpuName = gl.getParameter(dbgRenderInfo.UNMASKED_RENDERER_WEBGL)
-		}
+		if(gl) {
+			let dbgRenderInfo = gl.getExtension("WEBGL_debug_renderer_info")
+			if(dbgRenderInfo != null)  {
+				gpuName = gl.getParameter(dbgRenderInfo.UNMASKED_RENDERER_WEBGL)
+			}
 		
-		return gpuName
+			return gpuName
+		}
+		else {
+			return "No GPU?"
+		}
 	}
 
 	public addObject(renderObject: RenderObject): void {
