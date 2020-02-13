@@ -3,6 +3,7 @@
 # exclude built stuff
 build/client/
 build/out/
+src/data
 
 
 
