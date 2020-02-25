@@ -20,8 +20,7 @@ export class HSVColor {
 		let hB = Math.max(0, Math.min(1, -Math.abs(-6 * (this.h - 4 / 6)) + 2)) // max(0, min(1, -|-6 * (h - (4 / 6))| + 2))
 
 		// calculate the saturiation modifier. how much color to add to the above calculated colors based on their saturation values
-		let ffR = (-Math.abs(6 * (this.s - 3 / 6)) + 2) > 0
-		 ? 1 : 0 // -|6 * (s - (3 / 6))| + 2
+		let ffR = (-Math.abs(6 * (this.s - 3 / 6)) + 2) > 0 ? 1 : 0 // -|6 * (s - (3 / 6))| + 2
 		let ffG = (Math.abs(6 * (this.s - 2 / 3)) - 1) > 0 ? 1 : 0  //  |6 * (s - (2 / 6))| - 1
 		let ffB = (Math.abs(6 * (this.s - 4 / 6)) - 1) > 0 ? 1 : 0  //  |6 * (s - (4 / 6))| - 1
 		// ffR, ffG, and ffB determine when we should apply saturation modifier to the final color. below are the saturation values we add to the final color. if saturation == 0, then we need to add the full amount of color remaining that lets the final color equal 1
@@ -75,12 +74,17 @@ export class RGBColor {
 	// converts this RGB color to a HSV color
 	public toHSV(): HSVColor {
 		let magic = 2 * Math.sqrt(this.r**2 + this.b**2 + this.g**2 - this.g * this.r - this.b * this.g - this.b * this.r)
-		return new HSVColor(Math.atan2(this.b - this.g, Math.sqrt((2 * this.r - this.b - this.g) / 3)), magic / (this.r + this.b + this.g + magic), (this.r + this.b + this.g + magic) / 3, this.a)
+		return new HSVColor(Math.atan2(this.b - this.g, Math.sqrt((2 * this.r - this.b - this.g) / 3)),
+			magic / (this.r + this.b + this.g + magic),
+			(this.r + this.b + this.g + magic) / 3, this.a)
 	}
 
 	// interpolates between two colors
 	public static interpolate(color1: RGBColor, color2: RGBColor, percent: number): RGBColor {
-		return new RGBColor((color1.r * (1 - percent)) + color2.r * percent, (color1.g * (1 - percent)) + color2.g * percent, (color1.b * (1 - percent)) + color2.b * percent, (color1.a * (1 - percent)) + color2.a * percent)
+		return new RGBColor((color1.r * (1 - percent)) + color2.r * percent, 
+			(color1.g * (1 - percent)) + color2.g * percent, 
+			(color1.b * (1 - percent)) + color2.b * percent, 
+			(color1.a * (1 - percent)) + color2.a * percent)
 	}
 
 	// create a color from a hex or from a CSS color
