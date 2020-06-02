@@ -4,7 +4,7 @@ import ExtensionTree from "../game/extensionTree";
 import GameObject from "../game/gameObject";
 import RemoteObject from "./remoteObject";
 import Validator from "./validators/validator";
-import { Network } from "./network";
+import Network from "./network";
 
 // registers a class as a game class, allows us to look up their inheritance tree
 export function gameClass<T extends {new(...args:any[]): GameObject}>(classReference: T) {
@@ -39,7 +39,7 @@ export function gameClass<T extends {new(...args:any[]): GameObject}>(classRefer
 // marks this class as a network class
 export function networkClass(...args: string[]) {
 	return (classReference: Function) => {
-		Network.registerRemoteObject(classReference as any, ...args).inheritEverything()
+		Network.registerRemoteClass(classReference as any, ...args).inheritEverything()
 	}
 }
 
@@ -54,11 +54,11 @@ export function validator(targetClass: Function) {
 
 // marks a class property as illegal for network recreation/sending
 export function illegal(classReference: any, key: string): void {
-	Network.registerRemoteObject(classReference.constructor as any).addIllegalProperty(key)
+	Network.registerRemoteClass(classReference.constructor as any).addIllegalProperty(key)
 }
 
 function addValidators(classReference: any, methodName: string): RemoteMethod {
-	let remoteMethod = Network.registerRemoteObject(classReference.constructor as any).addRemoteMethod(classReference[methodName])
+	let remoteMethod = Network.registerRemoteClass(classReference.constructor as any).addRemoteMethod(classReference[methodName])
 	let types = Reflect.getMetadata("design:paramtypes", classReference, methodName)
 	for(let i = 0; i < types.length; i++) {
 		remoteMethod.addValidatedParameter(i, types[i])
@@ -101,11 +101,11 @@ export function server(callOnClient: boolean = false) {
 // tells the remote method to not validate this paramater
 export function novalidate(classReference: { new(...args: any[]): {} }, methodName: string | symbol, parameterIndex: number): void {
 	// holy shit this is long. first, make sure the networkMetadata object is created. next, make sure the remote method is created. last, remove the validated paramater
-	Network.registerRemoteObject(classReference.constructor as any).addRemoteMethod(classReference[methodName]).addValidatedParameter(parameterIndex, undefined)
+	Network.registerRemoteClass(classReference.constructor as any).addRemoteMethod(classReference[methodName]).addValidatedParameter(parameterIndex, undefined)
 }
 
 // tells the remote method that the argument at this index should be supplied with the value of the client who invoked it. also, does not validate this parameter
 export function player(classReference: { new(...args: any[]): {} }, methodName: string | symbol, parameterIndex: number): void {
-	Network.registerRemoteObject(classReference.constructor as any).addRemoteMethod(classReference[methodName]).addPlayerParameter(parameterIndex)
-	Network.registerRemoteObject(classReference.constructor as any).addRemoteMethod(classReference[methodName]).addValidatedParameter(parameterIndex, undefined)
+	Network.registerRemoteClass(classReference.constructor as any).addRemoteMethod(classReference[methodName]).addPlayerParameter(parameterIndex)
+	Network.registerRemoteClass(classReference.constructor as any).addRemoteMethod(classReference[methodName]).addValidatedParameter(parameterIndex, undefined)
 }

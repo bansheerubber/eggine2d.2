@@ -11,4 +11,8 @@ export default class ImageResource {
 			PIXI.Loader.shared.load(resolve)
 		})
 	}
+
+	public static getSpriteTexture(resource: string): PIXI.Texture {
+		return PIXI.Loader.shared.resources[resource].texture
+	}
 }

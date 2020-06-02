@@ -55,8 +55,8 @@ export default class BinaryFileReader {
 
 						this.byteIndex = 0
 						resolve(this.bytes)
-					});
-					fileReader.readAsArrayBuffer(request.response);
+					})
+					fileReader.readAsArrayBuffer(request.response)
 				}
 				
 				request.send()
@@ -66,34 +66,19 @@ export default class BinaryFileReader {
 
 	// if we're at the end of the file or not
 	public isEOF(): boolean {
-		if(this.byteIndex >= this.bytes.length) {
-			return true
-		}
-		else {
-			return false
-		}
+		return this.byteIndex >= this.bytes.length
 	}
 	
 	// reads a byte from our data
 	public readByte(): number {
-		if(!this.isEOF()) {
-			this.byteIndex++
-			return this.bytes[this.byteIndex - 1]
-		}
-		else {
-			return undefined
-		}
+		this.byteIndex++
+		return this.bytes[this.byteIndex - 1]
 	}
 	
 	// reads an int from the bytes
 	public readInt(): number {
-		if(!this.isEOF()) {
-			this.byteIndex += 4
-			return this.bytes[this.byteIndex - 4] << 24 | this.bytes[this.byteIndex - 3] << 16 | this.bytes[this.byteIndex - 2] << 8 | this.bytes[this.byteIndex - 1]
-		}
-		else {
-			return undefined
-		}
+		this.byteIndex += 4
+		return this.bytes[this.byteIndex - 4] << 24 | this.bytes[this.byteIndex - 3] << 16 | this.bytes[this.byteIndex - 2] << 8 | this.bytes[this.byteIndex - 1]
 	}
 	
 	// reads x amount of bytes into a new array

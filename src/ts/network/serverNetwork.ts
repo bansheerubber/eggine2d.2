@@ -1,5 +1,5 @@
 import NetworkBase from "./networkBase";
-import { Network, RemoteObjectSend } from "./network";
+import Network, { RemoteObjectSend, RemoteObjectReference } from "./network";
 import * as fs from "fs"
 import Scheduler from "../game/scheduler";
 import Game from "../game/game";
@@ -47,7 +47,7 @@ export class ServerNetworkHost {
 		}
 		else {
 			if(certificatePath || keyPath) {
-				Scheduler.schedule(100, console.error, `Could not find certificate or key files at "${certificatePath}" or "${keyPath}"`)
+				Scheduler.schedule(0.1, console.error, `Could not find certificate or key files at "${certificatePath}" or "${keyPath}"`)
 			}
 			
 			var partialOptions: any = {
@@ -113,44 +113,54 @@ export default class ServerNetwork extends NetworkBase {
 	public generateRemoteObjectsInit(): RemoteObjectSend[] {
 		let array: RemoteObjectSend[] = [] // create an array of objects we will sent
 		for(let remoteObject of this.remoteObjectsSet.values()) { // go through all of our remote objects
-			let remoteObjectReferences: number[] = []
-			let temp: RemoteObject[]
-			if((temp = this.getRemoteClassReferences(remoteObject))) { // get the class references of a paticular object, and create a new array that holds all their remoteIDs
-				for(let remoteObject of temp) {
-					remoteObjectReferences.push(remoteObject.remoteID)
+			if(remoteObject.remoteGroup.autoSend) {
+				let remoteObjectReferences: RemoteObjectReference[] = []
+				let temp: RemoteObject[]
+				if((temp = this.getRemoteClassReferences(remoteObject))) { // get the class references of a paticular object, and create a new array that holds all their remoteIDs
+					for(let remoteObject of temp) {
+						remoteObjectReferences.push({
+							remoteGroupID: remoteObject.remoteGroupID,
+							remoteID: remoteObject.remoteID,
+						})
+					}
 				}
+				
+				// once everything is completed, stringify the object and put it with its class references
+				array.push({
+					remoteObjectString: Network.stringifyObject(remoteObject, true),
+					remoteObjectReferences,
+				})
 			}
-			
-			// once everything is completed, stringify the object and put it with its class references
-			array.push({
-				remoteObjectString: Network.stringifyObject(remoteObject, true),
-				remoteObjectReferences: remoteObjectReferences
-			})
 		}
 		// return the final payload
 		return array
 	}
 
 	public sendRemoteObjectToClients(remoteObject: RemoteObject): void {
-		for(let client of this.clients.values()) {
-			let remoteObjectReferences: number[] = []
-			let temp: RemoteObject[]
-			if((temp = this.getRemoteClassReferences(remoteObject))) { // get the class references of a paticular object, and create a new array that holds all their remoteIDs
-				for(let remoteObject of temp) {
-					remoteObjectReferences.push(remoteObject.remoteID)
+		if(remoteObject.remoteGroup.autoSend) {
+			for(let client of this.clients.values()) {
+				let remoteObjectReferences: RemoteObjectReference[] = []
+				let temp: RemoteObject[]
+				if((temp = this.getRemoteClassReferences(remoteObject))) { // get the class references of a paticular object, and create a new array that holds all their remoteIDs
+					for(let remoteObject of temp) {
+						remoteObjectReferences.push({
+							remoteGroupID: remoteObject.remoteGroupID,
+							remoteID: remoteObject.remoteID,
+						})
+					}
 				}
+				
+				// once everything is completed, stringify the object and put it with its class references
+				client.sendRemoteObject({
+					remoteObjectString: Network.stringifyObject(remoteObject, true),
+					remoteObjectReferences,
+				})
 			}
-			
-			// once everything is completed, stringify the object and put it with its class references
-			client.sendRemoteObject({
-				remoteObjectString: Network.stringifyObject(remoteObject, true),
-				remoteObjectReferences: remoteObjectReferences
-			})
 		}
 	}
 
-	private createRemoteReturn(collection: ServerRemoteReturnCollection, objectID: number, client: Client): number {
-		let object = this.remoteObjects[objectID]
+	private createRemoteReturn(collection: ServerRemoteReturnCollection, groupID: number, objectID: number, client: Client): number {
+		let object = this.remoteObjects[groupID][objectID]
 		let returnID = this.remoteReturnCount
 		this.remoteReturns[returnID] = {
 			client,
@@ -159,7 +169,7 @@ export default class ServerNetwork extends NetworkBase {
 			promise: new Promise<ServerResolve>((resolve, reject) => { // create the promise
 				this.remoteResolves[returnID] = (value: any) => {
 					// make sure the value is correctly validated
-					let remoteMethod = this.remoteObjects[objectID].getNetworkMetadata().remoteMethods[collection.methodID]
+					let remoteMethod = this.remoteObjects[groupID][objectID].getNetworkMetadata().remoteMethods[collection.methodID]
 					let validator = Network.validators.get(remoteMethod.validatedReturn)
 					if(validator != undefined) {
 						let validated = validator.validate(value)
@@ -216,14 +226,13 @@ export default class ServerNetwork extends NetworkBase {
 		return returnID
 	}
 
-	public requestClientMethod(remoteObject: RemoteObject, objectID: number, methodID: number, onlyCallOnOwner: boolean, args: any[]): void {
-		
+	public requestClientMethod(remoteObject: RemoteObject, groupID: number, objectID: number, methodID: number, onlyCallOnOwner: boolean, args: any[]): void {
 		if(onlyCallOnOwner == false) {
 			var collection = new ServerRemoteReturnCollection(this, this.remoteReturnCollectionCount, methodID, this.clients.size) // create a promise object so we can do remote returns
 
 			for(let client of this.clients.values()) {
-				let returnID = this.createRemoteReturn(collection, objectID, client)
-				client.sendRemoteMethod(objectID, methodID, returnID, args)
+				let returnID = this.createRemoteReturn(collection, groupID, objectID, client)
+				client.sendRemoteMethod(groupID, objectID, methodID, returnID, args)
 			}
 		}
 		else { // only call the method on the owner of the object
@@ -231,8 +240,8 @@ export default class ServerNetwork extends NetworkBase {
 			
 			let client = remoteObject.owner
 			if(client instanceof Client) {
-				let returnID = this.createRemoteReturn(collection, objectID, client)
-				client.sendRemoteMethod(objectID, methodID, returnID, args)
+				let returnID = this.createRemoteReturn(collection, groupID, objectID, client)
+				client.sendRemoteMethod(groupID, objectID, methodID, returnID, args)
 			}
 		}
 
@@ -242,10 +251,10 @@ export default class ServerNetwork extends NetworkBase {
 
 	// executes a remote method on the server side
 	public executeRemoteMethod(payload: RemoteMethodPayload, client: Client): void {
-		let { objectID, methodID, returnID, args, } = payload
+		let { groupID, objectID, methodID, returnID, args, } = payload
 
-		if(this.remoteObjects[objectID]) {
-			let object = this.remoteObjects[objectID]
+		if(this.remoteObjects[groupID] && this.remoteObjects[groupID][objectID]) {
+			let object = this.remoteObjects[groupID][objectID]
 			// make sure we're the server and we have an actual remote method to call in the first place
 			if(this.game.isServer && object.getNetworkMetadata().remoteMethods[methodID]) {
 				let data = object.getNetworkMetadata().remoteMethods[methodID].receiveFromClient(object, client, ...args)

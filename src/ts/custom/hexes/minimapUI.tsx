@@ -1,7 +1,7 @@
 import * as React from "react";
 import { BasicUIProperties } from "../../render/basicUI";
 import Game from "../../game/game";
-import OverworldGamemode from "./overworldGamemode";
+import OverworldGamemode from "../gamemodes/overworldGamemode";
 import Hex from "./hex";
 
 interface MinimapUIState {
@@ -105,8 +105,7 @@ export default class MinimapUI extends React.Component<BasicUIProperties, Minima
 		let context = (document.getElementById("minimapCanvas") as HTMLCanvasElement).getContext("2d")
 		for(let hex of (this.game.gamemode as OverworldGamemode).hexMap.hexes.values()) {
 			context.fillStyle = (hex.constructor as typeof Hex).minimapColor
-			context.fillRect(hex.position.x, hex.position.y, 1, 1)
+			context.fillRect(hex.getPosition().x, hex.getPosition().y, 1, 1)
 		}
-		console.log(performance.now() - start)
 	}
 }

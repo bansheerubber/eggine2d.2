@@ -14,17 +14,17 @@ export default class SpriteChunkSet {
 	}
 
 	public addToSpriteChunk(sprite: Sprite): SpriteChunk {
-		let testPosition = sprite.getPosition().mul_(1 / SpriteChunk.size)
-		testPosition.x = Math.floor(testPosition.x)
-		testPosition.y = Math.floor(testPosition.y)
+		let position = sprite.getPosition()
+		let testX = Math.floor(position.x / SpriteChunk.size)
+		let testY = Math.floor(position.y / SpriteChunk.size)
 		
-		if(this.spriteChunks[testPosition.x] == undefined) {
-			this.spriteChunks[testPosition.x] = []
+		if(this.spriteChunks[testX] == undefined) {
+			this.spriteChunks[testX] = []
 		}
 
-		let chunk = this.spriteChunks[testPosition.x][testPosition.y]
+		let chunk = this.spriteChunks[testX][testY]
 		if(chunk == undefined) {
-			this.spriteChunks[testPosition.x][testPosition.y] = chunk = new SpriteChunk(sprite.game, testPosition, this.parentContainer, this.cachable)
+			this.spriteChunks[testX][testY] = chunk = new SpriteChunk(sprite.game, testX, testY, this.parentContainer, this.cachable)
 		}
 
 		if(chunk != sprite.chunk) {

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 sass ../src/scss/main.scss:client/css/main.min.css --style compressed
-node transpiler.min.js ../src/ts/ ../src/rust ./out/ $1 $2
+node transpiler.min.js ../src/ts/ ../src/rust ./out/ ../src/ts/network/network.ts $1 $2
 echo "Cleaning build's ./data/..."
 rm -Rf ./client/data/
 rm -Rf ./out/data/

@@ -1,7 +1,7 @@
 import Client from "./client"
 import ServerNetwork from "./serverNetwork";
 import { RemoteMethodPayload, RemoteReturnPayload } from "./remoteMethod";
-import { Network } from "./network";
+import Network from "./network";
 
 // interprets commands sent by a client to the server. this class solely exists on the server
 export default class ClientInterpreter {

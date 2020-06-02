@@ -31,7 +31,8 @@ export default class GameRenderer {
 	constructor(game: Game) {
 		this.game = game
 
-        PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST
+		PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST
+		PIXI.settings.ROUND_PIXELS = true
 
         // setup the pixi application
         this.pixiApp = new PIXI.Application({
@@ -43,9 +44,9 @@ export default class GameRenderer {
 			antialias: true,
 		})
 		
+		this.pixiApp.stage.addChild(this.hex)
 		this.pixiApp.stage.addChild(this.shadows)
 		this.pixiApp.stage.addChild(this.dynamic)
-		this.pixiApp.stage.addChild(this.hex)
 		this.pixiApp.stage.addChild(this.static)
 		this.pixiApp.stage.addChild(this.debug)
 

@@ -14,7 +14,7 @@ export default class VectorInterpolation extends GameObject {
 	public endCallback: callback
 
 	protected interpolatedVector: Vector = new Vector(0, 0)
-	protected timeElapsed: number = 0
+	public timeElapsed: number = 0
 
 
 	

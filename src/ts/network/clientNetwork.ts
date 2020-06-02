@@ -1,33 +1,64 @@
 import NetworkBase from "./networkBase";
-import { Network, RemoteObjectSend as RemoteObjectPayload } from "./network";
+import Network, { RemoteObjectSend as RemoteObjectPayload, RemoteObjectReference } from "./network";
 import Game from "../game/game";
 import RemoteObject from "./remoteObject";
 import { RemoteMethodPayload, RemoteReturnPayload, ClientRemoteReturn } from "./remoteMethod";
 import Client from "./client";
 import { ServerNetworkHost } from "./serverNetwork";
+import BattleTeam from "../custom/units/battleTeam";
+import Scheduler from "../game/scheduler";
+
+enum ClientNetworkConnetionStatus {
+	CONNECTING,
+	CONNECTED,
+	CLOSED,
+	RECONNECTING,
+}
 
 // handles the websocket connection for a ClientNetwork instance
 class ClientNetworkConnection {
 	public network: ClientNetwork
-	public connectionOptions: any = {}
-	public websocket: WebSocket
+	private websocket: WebSocket
 	public bytesReceived: number
 	public ping: number = -1
-	public url: string = ""
+	public url: string = "n/a"
+	public serverName: string = "n/a"
+	private nameToOption: Map<string, string> = new Map()
+	public status: ClientNetworkConnetionStatus = ClientNetworkConnetionStatus.CLOSED
 
 
 
 	constructor(network: ClientNetwork) {
 		this.network = network
 
-		this.connect("wss://bansheerubber.com:" + ServerNetworkHost.port)
+		// this.connect("wss://bansheerubber.com:" + ServerNetworkHost.port)
+	}
+
+	// adds a connection option to our list
+	public addOption(url: string, name: string): void {
+		this.nameToOption.set(name, url)
+	}
+
+	// connections to one of our connection options by name
+	public connectByName(name: string): void {
+		this.connect(this.nameToOption.get(name), name)
+	}
+
+	public getStatusString(): string {
+		for(let property in ClientNetworkConnetionStatus) {
+			if((ClientNetworkConnetionStatus[property] as any as ClientNetworkConnetionStatus) == this.status) {
+				return property
+			}
+		}
+		return "n/a"
 	}
 
 	// connect to the server
-	public connect(url: string, options: any = {}): void {
+	public connect(url: string, name: string = "n/a"): void {
 		this.url = url
-		
-		this.connectionOptions = options
+		this.serverName = name
+
+		this.status = ClientNetworkConnetionStatus.CONNECTING
 
 		// create the websocket
 		this.websocket = new WebSocket(url)
@@ -47,20 +78,37 @@ class ClientNetworkConnection {
 	// called when we connect up to the server
 	private onConnected(event): void {
 		this.ping = 0
+		this.status = ClientNetworkConnetionStatus.CONNECTED
+
+		console.log(`Connected to '${this.url}'`)
 	}
 
 	private onClosed(event): void {
 		this.ping = -1
 		this.url = ""
+		this.serverName = ""
+
+		if(this.status == ClientNetworkConnetionStatus.CONNECTED) {
+			this.status = ClientNetworkConnetionStatus.CLOSED
+		}
 	}
 
 	private onError(error): void {
+		console.error("Connection Error:", error)
+		// try to reconnect later
+		let url = this.url
+		let name = this.serverName
+		Scheduler.schedule(10, () => {
+			this.connect(url, name)
+		})
 
+		this.status = ClientNetworkConnetionStatus.RECONNECTING
 	}
 
 	private onMessage(event: MessageEvent): void {
 		try {
 			var message = Network.parseObject(event.data)
+			this.bytesReceived += event.data.length
 		}
 		catch(error) {
 			console.error("Client Network: Failed to parse server message.", error)
@@ -95,7 +143,7 @@ class ClientNetworkConnection {
 			// tell the game that we own this paticular client
 			case 3: {
 				let remoteID = message[1] as number
-				this.network.game.client = this.network.remoteObjects[remoteID] as Client
+				this.network.game.client = this.network.remoteObjects[0][remoteID] as Client
 				break
 			}
 
@@ -117,6 +165,10 @@ class ClientNetworkConnection {
 export default class ClientNetwork extends NetworkBase {
 	public client: ClientNetworkConnection
 	public remoteReturns: { [key: number]: ClientRemoteReturn } = {}
+
+	private pause_: boolean = false
+	private pauseResolve: () => void
+	private pausePromise: Promise<void>
 	
 
 
@@ -125,23 +177,45 @@ export default class ClientNetwork extends NetworkBase {
 
 		this.client = new ClientNetworkConnection(this)
 	}
+
+	public set pause(value: boolean) {
+		if(this.pauseResolve && value == false) {
+			this.pauseResolve()
+			this.pausePromise = undefined
+			this.pauseResolve = undefined
+		}
+		else if(value == true) {
+			this.pausePromise = new Promise<void>((resolve, reject) => {
+				this.pauseResolve = resolve
+			})
+		}
+
+		this.pause_ = value
+	}
+
+	public get pause(): boolean { 
+		return this.pause_
+	}
 	
 	// when the server sends a payload that wants us to create a bunch of objects, we will parse it here and do all the object creation here
-	public parseRemoteObjectsInit(payload: RemoteObjectPayload[]): void {
+	public async parseRemoteObjectsInit(payload: RemoteObjectPayload[]): Promise<void> {
 		let newObjects = []
 		for(let remoteObjectSend of payload) {
 			newObjects.push(Network.parseObject(remoteObjectSend.remoteObjectString)) // parse the object properties string. this will create the object and assign them correct positions in our remoteID lists
 		}
-		
 
 		// generate the class reference object lists before we reconstruct, so every new object has their references ready before anything is reconstructed
 		for(let i in newObjects) {
 			let object = newObjects[i] // our new object
 			let classReferences = payload[i].remoteObjectReferences // the class references associated with this object
 			let objectReferences = [] // the object references we will need to generate
+
 			// go through the remoteIDs we were received and replace them with their corresponding class references
 			for(let i = 0; i < classReferences.length; i++) {
-				objectReferences[i] = this.game.network.remoteObjects[classReferences[i]]
+				let classReference = classReferences[i] as RemoteObjectReference
+				if(classReference.remoteGroupID !== undefined && classReference.remoteID !== undefined) {
+					objectReferences[i] = this.game.network.remoteObjects[classReference.remoteGroupID][classReference.remoteID]
+				}
 			}
 
 			this.game.network.setRemoteClassReferences(object, objectReferences) // set the class references so when we call the reconstructor the class reference creator will handle everything smoothly
@@ -150,19 +224,24 @@ export default class ClientNetwork extends NetworkBase {
 		// now we need to handle reconstruction. go through the objects we were sent in the order they were created in on the server and reconstruct each one
 		for(let object of newObjects) {
 			let remoteObject = object as RemoteObject
-			if(!this.game.network.hasBeenReconstructed[remoteObject.remoteID]) { // only reconstruct the object if it hasn't been reconstructed before
+			if(!this.game.network.hasBeenReconstructed[remoteObject.remoteGroupID][remoteObject.remoteID]) { // only reconstruct the object if it hasn't been reconstructed before
 				remoteObject.reconstructor(Network.game, ...Network.buildInstanceVariables(remoteObject.getNetworkMetadata(), remoteObject)) // call reconstructor with correct instance variables
-				this.game.network.addRemoteObject(object, object.remoteID)
+
+				this.game.network.addRemoteObject(remoteObject, remoteObject.remoteGroupID, remoteObject.remoteID)
+
+				if(this.pausePromise) { // if we pause, then wait for the pause to finish
+					await this.pausePromise
+				}
 			}
 		}
 	}
 
 	// asks the server to call a method on a paticular remote object
-	public requestServerMethod(objectID: number, methodID: number, args: any[]) {
+	public requestServerMethod(groupID: number, objectID: number, methodID: number, args: any[]) {
 		// create a promise object so we can do remote returns
 		let returnID = this.remoteReturnCount
 		this.remoteReturns[returnID] = {
-			object: this.remoteObjects[objectID],
+			object: this.remoteObjects[groupID][objectID],
 			promise: new Promise<any>((resolve, reject) => {
 				this.remoteResolves[returnID] = resolve
 				this.remoteRejects[returnID] = reject
@@ -176,6 +255,7 @@ export default class ClientNetwork extends NetworkBase {
 		
 		// send the command to the server
 		this.client.send(0, {
+			groupID,
 			objectID,
 			methodID,
 			returnID,
@@ -194,10 +274,10 @@ export default class ClientNetwork extends NetworkBase {
 
 	// execute a remote method sent by the server
 	public executeRemoteMethod(payload: RemoteMethodPayload): void {
-		let { objectID, methodID, returnID, args } = payload
+		let { groupID, objectID, methodID, returnID, args } = payload
 
-		if(this.remoteObjects[objectID]) {
-			let object = this.remoteObjects[objectID]
+		if(this.remoteObjects[groupID] && this.remoteObjects[groupID][objectID]) {
+			let object = this.remoteObjects[groupID][objectID]
 
 			// make sure we're the client and we have an actual remote method to call in the first place
 			if(this.game.isClient && object.getNetworkMetadata().remoteMethods[methodID]) {

@@ -2,23 +2,52 @@ import RemoteObject from "./remoteObject";
 import Game from "../game/game";
 import Client from "./client"
 import { RemoteMethodPayload, ClientRemoteReturn } from "./remoteMethod";
+import RemoteGroup from "./remoteGroup";
+import { StubObject } from "./network";
 
 // base class for the server/client network classes, has some abstract functions
 export default abstract class NetworkBase {
-	public remoteObjects: { [key: number]: RemoteObject } = {}
+	public remoteObjects: { // changed
+		[groupID: number]: { 
+			[remoteID: number]: RemoteObject
+		}
+	} = {}
+	
+	public remoteGroups: { // changed
+		[groupID: number]: RemoteGroup
+	} = {}
+
 	public remoteObjectsSet: Set<RemoteObject> = new Set<RemoteObject>()
-	public remoteClassReferences: { [key: number]: RemoteObject[] } = {}
+
+	public remoteClassReferences: { // unchanged
+		[groupID: number]: { 
+			[remoteID: number]: RemoteObject[]
+		}
+	} = {}
+
 	public game: Game
-	public hasBeenReconstructed: { [key: number]: boolean } = {}
+
+	public hasBeenReconstructed: { // unchanged
+		[remoteGroupID: number]: {
+			[remoteID: number]: boolean
+		}
+	} = {}
+
 	public clients: Set<Client> = new Set<Client>()
 
-	public remoteReturns: { [key: number]: any } = {}
+	public remoteReturns: { // unchanged
+		[key: number]: any
+	} = {}
 
 	protected remoteReturnCount: number = 0
-	protected remoteResolves: { [key: number]: (value: any) => void } = {}
-	protected remoteRejects: { [key: number]: (reason: any) => void } = {}
 
-	private nextRemoteID: number = 0
+	protected remoteResolves: { // unchanged
+		[key: number]: (value: any) => void
+	} = {}
+
+	protected remoteRejects: { // unchanged
+		[key: number]: (reason: any) => void
+	} = {}
 
 
 
@@ -26,43 +55,71 @@ export default abstract class NetworkBase {
 		this.game = game
 	}
 
-	public addRemoteObject(remoteObject: RemoteObject, customRemoteID?: number): void {	
-		if(customRemoteID && this.remoteObjects[customRemoteID]) {
-			this.removeRemoteObject(this.remoteObjects[customRemoteID])
+	public addRemoteObject(remoteObject: RemoteObject, customRemoteGroup?: number, customRemoteID?: number): void {	
+		let stubReferences = undefined
+		if(customRemoteGroup !== undefined && customRemoteID !== undefined 
+			&& this.remoteObjects[customRemoteGroup] !== undefined
+			&& this.remoteObjects[customRemoteGroup][customRemoteID] !== undefined) {
+
+			if((this.remoteObjects[customRemoteGroup][customRemoteID] as any as StubObject).__stubReferences__?.length > 0) {
+				stubReferences = (this.remoteObjects[customRemoteGroup][customRemoteID] as any as StubObject).__stubReferences__
+			}
+			
+			this.removeRemoteObject(this.remoteObjects[customRemoteGroup][customRemoteID])
 		}
 		
-		let remoteID = customRemoteID != undefined ? customRemoteID : this.nextRemoteID
-		this.remoteObjects[remoteID] = remoteObject
+		let groupID = customRemoteGroup != undefined ? customRemoteGroup : 0
+		let remoteID = customRemoteID != undefined ? customRemoteID : this.remoteGroups[groupID].getNextRemoteID() // get the next remote id from the group
+		this.remoteObjects[groupID][remoteID] = remoteObject // add to our map
+		this.remoteGroups[groupID].add(remoteObject) // add to the group
 		remoteObject.remoteID = remoteID
-		
-		if(customRemoteID == undefined) {
-			this.nextRemoteID++
-		}
+		remoteObject.remoteGroupID = groupID
 
 		this.remoteObjectsSet.add(remoteObject)
+
+		// make sure stub references are set correctly, or die
+		if(stubReferences) {
+			for(let stubReference of stubReferences) {
+				stubReference.object[stubReference.key] = remoteObject
+			}
+		}
 	}
 
 	public removeRemoteObject(remoteObject: RemoteObject): void {
-		delete this.remoteObjects[remoteObject.remoteID]
+		// delete this.remoteObjects[remoteObject.remoteGroupID][remoteObject.remoteID]
+		remoteObject.remoteGroup?.remove(remoteObject)
 		this.remoteObjectsSet.delete(remoteObject)
 	}
 
 	public setRemoteClassReferences(ownerObject: RemoteObject, array: RemoteObject[]): void {
-		this.remoteClassReferences[ownerObject.remoteID] = array
+		if(this.remoteClassReferences[ownerObject.remoteGroupID] === undefined) {
+			this.remoteClassReferences[ownerObject.remoteGroupID] = []
+		}
+		
+		this.remoteClassReferences[ownerObject.remoteGroupID][ownerObject.remoteID] = array
 	}
 
 	public addRemoteClassReference(ownerObject: RemoteObject, otherObject: RemoteObject, position: number): void {
-		if(!this.getRemoteClassReferences(ownerObject)) {
-			this.remoteClassReferences[ownerObject.remoteID] = []
+		if(this.remoteClassReferences[ownerObject.remoteGroupID] === undefined) {
+			this.remoteClassReferences[ownerObject.remoteGroupID] = []
+		}
+		
+		if(this.getRemoteClassReferences(ownerObject) === undefined) {
+			this.remoteClassReferences[ownerObject.remoteGroupID][ownerObject.remoteID] = []
 		}
 
-		this.remoteClassReferences[ownerObject.remoteID][position] = otherObject
+		this.remoteClassReferences[ownerObject.remoteGroupID][ownerObject.remoteID][position] = otherObject
 	}
 
 	public abstract executeRemoteMethod(...args: any[]): void
 
 	public getRemoteClassReferences(ownerObject: RemoteObject): RemoteObject[] {
-		return this.remoteClassReferences[ownerObject.remoteID]
+		if(this.remoteClassReferences[ownerObject.remoteGroupID] === undefined) {
+			return undefined
+		}
+		else {
+			return this.remoteClassReferences[ownerObject.remoteGroupID][ownerObject.remoteID]
+		}
 	}
 
 	public resolveRemoteReturn(returnID: number, data: any): any {

@@ -1,7 +1,7 @@
 import RemoteObject from "./remoteObject";
 import RemoteMethod from "./remoteMethod";
 import ExtensionTree from "../game/extensionTree";
-import { Network } from "./network";
+import Network from "./network";
 import GameObject from "../game/gameObject";
 
 // holds the metadata for a paticular NetworkObject derived class
@@ -9,7 +9,7 @@ export default class NetworkMetadata {
 	public classReference: { new(...args: any[]): {} }
 	public className: string
 	public constructorArgumentNames: string[] = []
-	public illegalProperties: string[] = ["owner", "isCommunal", "game", "gameObjectOptions"]
+	public illegalProperties: string[] = ["%[RemoteObject: owner]", "%[RemoteObject: isCommunal]", "%[GameObject: game]", "%[GameObject: gameObjectOptions]", "%[RemoteObject: remoteGroup]"]
 	public remoteMethods: RemoteMethod[] = []
 	
 	constructor(classReference: { new(...args: any[]): {} }, ...args: string[]) {

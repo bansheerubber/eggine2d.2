@@ -2,7 +2,7 @@ import * as PIXI from "pixi.js"
 import Game from "./game";
 import Text from "../render/text";
 import Matter = require("matter-js");
-import { Keybind } from "./keybinds";
+import { Keybind, KeybindModifier } from "./keybinds";
 import ClientNetwork from "../network/clientNetwork";
 
 class Average {
@@ -16,12 +16,12 @@ class Average {
 		
 		this.averageArray.push(input)
 
-		if(this.averageArray.length > 0) {
-			this.drops.push(oldAverage - this.getAverage())
-		}
-
 		if(this.averageArray.length > Average.averageMax) {
 			this.averageArray.splice(0, 1)
+		}
+
+		if(this.averageArray.length > 0) {
+			this.drops.push(oldAverage - this.getAverage())
 		}
 
 		if(this.drops.length > Average.averageMax) {
@@ -45,7 +45,7 @@ class Average {
 				smallest = element
 			}
 		}
-		return smallest
+		return Math.abs(smallest)
 	}
 }
 
@@ -107,16 +107,14 @@ export default class Debug {
 		this.oldHeight = this.game.renderer.height
 
 		// toggle rendering collision debug
-		new Keybind(() => {
+		new Keybind("f2", KeybindModifier.NONE, "Toggle Matter.JS View").down((event: KeyboardEvent) => {
 			if(this.shouldRenderCollisions) {
 				let context = this.renderer.canvas.getContext("2d")
 				context.clearRect(0, 0, this.renderer.canvas.width, this.renderer.canvas.height)
 			}
 
 			this.shouldRenderCollisions = !this.shouldRenderCollisions
-		}, () => {
-			
-		}, "f2", Keybind.None, "")
+		})
 	}
 
 	public updateCamera() {	
@@ -159,23 +157,31 @@ export default class Debug {
 		this.shadowTime = 0
 
 		let fps = 1000 / (this.deltaAverage.getAverage() * 1000 + this.tickAverage.getAverage() + this.renderAverage.getAverage() + this.collisionAverage.getAverage())
+		
+		let camera = "Camera: None"
+		if(this.game.renderer.camera) {
+			camera = `Camera: ${this.game.renderer.camera.position.x.toFixed(1)}, ${this.game.renderer.camera.position.y.toFixed(1)}, ${this.game.renderer.camera.zoom.toFixed(2)}`
+		}
+		
 
 		let message = [
 			`Version: ${this.game.version}`,
 			`JSSpeed: ${this.jsSpeed.toFixed(3)}s`,
 			`GPU: ${this.gpu}`,
 			`FPS: ${fps.toFixed(0)}`,
-			`Delta Time: ${(this.deltaAverage.getAverage() * 1000).toFixed(2)} (${(this.deltaAverage.getBiggestDrop() * 1000).toFixed(2)}) ms`,
-			`Total Delta Time: ${(this.totalDeltaAverage.getAverage() * 1000).toFixed(2)} (${(this.totalDeltaAverage.getBiggestDrop() * 1000).toFixed(2)}) ms`,
-			`Tick Time: ${this.tickAverage.getAverage().toFixed(2)} (${this.tickAverage.getBiggestDrop().toFixed(2)}) ms`,
-			`Render Time: ${this.renderAverage.getAverage().toFixed(2)} (${this.renderAverage.getBiggestDrop().toFixed(2)}) ms`,
-			`Shadow Map Gen Time: ${this.shadowAverage.getAverage().toFixed(2)} (${this.shadowAverage.getBiggestDrop().toFixed(2)}) ms`,
-			`Collision Time: ${this.collisionAverage.getAverage().toFixed(2)} (${this.collisionAverage.getBiggestDrop().toFixed(2)}) ms`,
+			`Delta Time: ${(this.deltaAverage.getAverage() * 1000).toFixed(2)} (d${(this.deltaAverage.getBiggestDrop() * 1000).toFixed(2)}) ms`,
+			`Total Delta Time: ${(this.totalDeltaAverage.getAverage() * 1000).toFixed(2)} (d${(this.totalDeltaAverage.getBiggestDrop() * 1000).toFixed(2)}) ms`,
+			`Tick Time: ${this.tickAverage.getAverage().toFixed(2)} (d${this.tickAverage.getBiggestDrop().toFixed(2)}) ms`,
+			`Render Time: ${this.renderAverage.getAverage().toFixed(2)} (d${this.renderAverage.getBiggestDrop().toFixed(2)}) ms`,
+			`Shadow Map Gen Time: ${this.shadowAverage.getAverage().toFixed(2)} (d${this.shadowAverage.getBiggestDrop().toFixed(2)}) ms`,
+			`Collision Time: ${this.collisionAverage.getAverage().toFixed(2)} (d${this.collisionAverage.getBiggestDrop().toFixed(2)}) ms`,
 			`Resolution: ${this.game.renderer.width}x${this.game.renderer.height}, ${(this.game.renderer.width / this.game.renderer.height).toFixed(2)}`,
+			camera,
 			`# Objects Ticked: ${tickedCount}/${maxTickedCount}`,
 			`# Rigid Bodies: ${this.game.collision.collidables.size}`,
 			`Latency: ${Math.floor((this.game.network as ClientNetwork).client.ping)}`,
-			`Connection: ${(this.game.network as ClientNetwork).client.url}`,
+			`Connection: ${(this.game.network as ClientNetwork).client.getStatusString()}, ${(this.game.network as ClientNetwork).client.url} (${(this.game.network as ClientNetwork).client.serverName})`,
+			`Bytes Received: ${(this.game.network as ClientNetwork).client.bytesReceived}`,
 		]
 
 		this.text.message = message.join("\n")

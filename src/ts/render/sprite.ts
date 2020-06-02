@@ -18,9 +18,9 @@ export default class Sprite extends RenderObject implements Physical {
 	private _scale: Vector = new Vector(1, 1)
 	private _position: Vector = new Vector(0, 0)
 
-	
 
-	constructor(game: Game, resource?: string | PIXI.Texture, customContainer?: PIXI.Container) {
+
+	constructor(game: Game, resource?: string | PIXI.Texture, customContainer: PIXI.Container = game.renderer.dynamic) {
 		super(game, {
 			canTick: false
 		})
@@ -41,23 +41,10 @@ export default class Sprite extends RenderObject implements Physical {
 		this.sprite.anchor.x = 0.5
 		this.sprite.anchor.y = 0.5
 
-		if(!customContainer) {
-			this.game.renderer.dynamic.addChild(this.sprite)
-			this.container = this.game.renderer.dynamic
-
-			let chunkSet = this.game.renderer.chunks.get(this.game.renderer.dynamic)
-			if(chunkSet) {
-				this.chunk = chunkSet.addToSpriteChunk(this)
-			}
-		}
-		else {
+		this.container = customContainer
+		let chunkSet = this.game.renderer.chunks.get(customContainer)
+		if(chunkSet === undefined) {
 			customContainer.addChild(this.sprite)
-			this.container = customContainer
-
-			let chunkSet = this.game.renderer.chunks.get(customContainer)
-			if(chunkSet) {
-				this.chunk = chunkSet.addToSpriteChunk(this)
-			}
 		}
 	}
 
@@ -165,9 +152,6 @@ export default class Sprite extends RenderObject implements Physical {
 		super.destroy()
 
 		this.sprite.destroy()
-
-		if(this.chunk) {
-			this.chunk.remove(this)
-		}
+		this.chunk?.remove(this)
 	}
 }

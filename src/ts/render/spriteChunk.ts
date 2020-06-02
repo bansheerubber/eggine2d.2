@@ -5,7 +5,7 @@ import Vector from "../helpers/vector";
 import Range from "../helpers/range";
 import { RGBColor, HSVColor } from "../helpers/color";
 import * as PIXI from "pixi.js"
-import { ScheduleObject, Frames } from "../game/scheduler";
+import Scheduler, { ScheduleObject, Frames } from "../game/scheduler";
 
 export default class SpriteChunk extends GameObject {
 	public position: Vector
@@ -15,21 +15,21 @@ export default class SpriteChunk extends GameObject {
 	public isVisible: boolean = true
 	public cachable: boolean
 
-	private sortedSpritesX: Sprite[] = [] // sorted by distance of sprite's bottom corner to the screen position of the chunk, highest is last
-	private sortedSpritesY: Sprite[] = [] // sorted by distance of sprite's bottom corner to the screen position of the chunk, highest is last
-	private minBoundary: Vector
-	private maxBoundary: Vector
+	private minBoundary: Vector = new Vector()
+	private maxBoundary: Vector = new Vector()
 	private graphics: PIXI.Graphics
 	private color: RGBColor
+	private recalcSchedule: ScheduleObject
+	private shouldRecalcBounds: boolean = true
 	
 	public static size: number = 1500 // how many pixels wide/tall the chunk is
 	private static debug: boolean = false
 
 
 
-	constructor(game: Game, chunkPosition: Vector, parentContainer: PIXI.Container, cachable: boolean = false) {
+	constructor(game: Game, chunkX: number, chunkY: number, parentContainer: PIXI.Container, cachable: boolean = false) {
 		super(game)
-		this.chunkPosition = chunkPosition
+		this.chunkPosition = new Vector(chunkX, chunkY)
 		this.position = this.chunkPosition.mul_(SpriteChunk.size)
 		this.maxBoundary = this.position.clone()
 		this.cachable = cachable
@@ -46,6 +46,10 @@ export default class SpriteChunk extends GameObject {
 	public tick(deltaTime: number): void {
 		super.tick(deltaTime)
 		
+		if(this.shouldRecalcBounds) {
+			this.recalcBoundary()
+		}
+
 		let isOnScreen = this.game.renderer.camera.showsBox(this.minBoundary, this.maxBoundary.x - this.minBoundary.x, this.maxBoundary.y - this.minBoundary.y)
 		if(isOnScreen && !this.isVisible) {
 			this.isVisible = true
@@ -73,9 +77,7 @@ export default class SpriteChunk extends GameObject {
 	}
 
 	public add(sprite: Sprite): void {
-		this.sprites.add(sprite)
-
-		if(this.sortedSpritesX.length == 0) {
+		/*if(this.sortedSpritesX.length == 0) {
 			this.sortedSpritesX.push(sprite)
 			this.sortedSpritesY.push(sprite)
 		}
@@ -141,21 +143,25 @@ export default class SpriteChunk extends GameObject {
 			addToSortedListX(0, this.sortedSpritesX.length)
 			addToSortedListY(0, this.sortedSpritesY.length)
 		}
-		this.recalcBoundary()
+		this.recalcBoundary()*/
+
+		this.sprites.add(sprite)
 
 		// pixijs operations
 		this.container.addChild(sprite.sprite)
-
 		if(this.cachable) {
 			this.container.cacheAsBitmap = false
 		}
+
+		this.shouldRecalcBounds = true
 	}
 
 	public remove(sprite: Sprite): void {
 		this.sprites.delete(sprite)
-		this.sortedSpritesX.splice(this.sortedSpritesX.indexOf(sprite), 1)
-		this.sortedSpritesY.splice(this.sortedSpritesY.indexOf(sprite), 1)
-		this.recalcBoundary()
+		/*this.sortedSpritesX.splice(this.sortedSpritesX.indexOf(sprite), 1)
+		this.sortedSpritesY.splice(this.sortedSpritesY.indexOf(sprite), 1)*/
+		
+		this.shouldRecalcBounds = true
 
 		// pixijs operations
 		this.container.removeChild(sprite.sprite)
@@ -166,19 +172,58 @@ export default class SpriteChunk extends GameObject {
 
 	// updates a sprites position within the chunk
 	public updateSprite(sprite: Sprite): void {
-		this.remove(sprite)
-		this.add(sprite)
+		this.shouldRecalcBounds = true
+	}
+
+	private getBoundaries(): Sprite[] {
+		let maxX = Number.MIN_SAFE_INTEGER
+		let maxY = Number.MIN_SAFE_INTEGER
+		let minX = Number.MAX_SAFE_INTEGER
+		let minY = Number.MAX_SAFE_INTEGER
+
+		let maxXSprite, maxYSprite, minXSprite, minYSprite
+
+		for(let sprite of this.sprites.values()) {
+			let x = sprite.getPosition().x
+			let y = sprite.getPosition().y
+
+			if(x > maxX) {
+				maxX = x
+				maxXSprite = sprite
+			}
+			if(x < minX) {
+				minX = x
+				minXSprite = sprite
+			}
+			if(y > maxY) {
+				maxY = y
+				maxYSprite = sprite
+			}
+			if(y < minY) {
+				minY = y
+				minYSprite = sprite
+			}
+		}
+		
+		return [
+			maxXSprite,
+			maxYSprite,
+			minXSprite,
+			minYSprite,
+		]
 	}
 
 	private recalcBoundary(): void {
-		if(this.sortedSpritesX.length > 0) {
-			let foundMaxX = this.sortedSpritesX[this.sortedSpritesX.length - 1]
-			let foundMaxY = this.sortedSpritesY[this.sortedSpritesY.length - 1]
+		if(this.sprites.size > 0) {
+			let [foundMaxX, foundMaxY, foundMinX, foundMinY] = this.getBoundaries()
+			
+			// let foundMaxX = this.sortedSpritesX[this.sortedSpritesX.length - 1]
+			// let foundMaxY = this.sortedSpritesY[this.sortedSpritesY.length - 1]
 
 			this.maxBoundary = new Vector(foundMaxX.getPosition().x + foundMaxX.width / 2, foundMaxY.getPosition().y + foundMaxY.height / 2)
 			
-			let foundMinX = this.sortedSpritesX[0]
-			let foundMinY = this.sortedSpritesY[0]
+			// let foundMinX = this.sortedSpritesX[0]
+			// let foundMinY = this.sortedSpritesY[0]
 
 			this.minBoundary = new Vector(foundMinX.getPosition().x - foundMinX.width / 2, foundMinY.getPosition().y - foundMinY.height / 2)
 		}
@@ -186,5 +231,7 @@ export default class SpriteChunk extends GameObject {
 			this.minBoundary = this.position.clone()
 			this.maxBoundary = this.position.clone()
 		}
+
+		this.shouldRecalcBounds = false
 	}
 }

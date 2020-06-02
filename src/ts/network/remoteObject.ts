@@ -6,7 +6,8 @@ import { gameClass, networkClass } from "./networkDecorators";
 import { ServerResolve } from "./remoteMethod";
 import ServerNetwork from "./serverNetwork";
 import ClientNetwork from "./clientNetwork";
-import { Network } from "./network";
+import Network from "./network";
+import RemoteGroup from "./remoteGroup";
 
 // classes that need to communicate over the network inherits from this object
 export default class RemoteObject extends GameObject {
@@ -14,6 +15,8 @@ export default class RemoteObject extends GameObject {
 	public isCommunal: boolean = false
 
 	public remoteID: number = -1
+	public remoteGroupID: number = -1
+	public remoteGroup: RemoteGroup
 	
 
 	
@@ -22,18 +25,29 @@ export default class RemoteObject extends GameObject {
 		Object.assign(this)
 
 		if(this.game.isServer) {
-			this.game.network.addRemoteObject(this);
+			this.game.network.addRemoteObject(this, gameObjectOptions?.customRemoteGroupID, gameObjectOptions?.customRemoteID)
 			setTimeout(() => {
 				(this.game.network as ServerNetwork).sendRemoteObjectToClients(this)
 			}, 1)
+		}
+		else if(gameObjectOptions?.customRemoteID !== undefined) {
+			this.game.network.addRemoteObject(this, gameObjectOptions?.customRemoteGroupID, gameObjectOptions?.customRemoteID)
 		}
 	}
 
 	// called when the constructor is called. however, when recreating a remote object from network information, we do not call the constructor and instead call only this.
 	public reconstructor(game: Game, ...args: any[]): void {
 		this.game = game
-		
-		this.game.network.hasBeenReconstructed[this.remoteID] = true
+		let options = args[0] as GameObjectOptions
+
+		if(options) {
+			this.remoteGroupID = options.customRemoteGroupID === undefined ? -1 : options.customRemoteGroupID
+			this.remoteID = options.customRemoteID === undefined ? -1 : options.customRemoteID
+		}
+
+		if(this.remoteGroupID != -1 && this.remoteID != -1) {
+			this.game.network.hasBeenReconstructed[this.remoteGroupID][this.remoteID] = true
+		}
 	}
 
 	public getNetworkMetadata(): NetworkMetadata {

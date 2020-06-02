@@ -13,7 +13,7 @@ export default class ScalarInterpolation extends GameObject {
 	public callback: callback
 	public endCallback: callback
 
-	protected timeElapsed: number = 0
+	public timeElapsed: number = 0
 
 
 	

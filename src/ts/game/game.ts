@@ -1,5 +1,5 @@
 import GameTicker from "./gameTicker";
-import { Network } from "../network/network";
+import Network from "../network/network";
 import RemoteObject from "../network/remoteObject";
 import ClientNetwork from "../network/clientNetwork";
 import ServerNetwork from "../network/serverNetwork";
@@ -8,6 +8,7 @@ import Debug from "./debug";
 import GameCollision from "../collision/gameCollision";
 import Gamemode from "./gamemode";
 import Client from "../network/client";
+import RemoteGroup from "../network/remoteGroup";
 
 export default class Game {
 	// how my system of versioning works:
@@ -59,6 +60,8 @@ export default class Game {
 		else {
 			this.network = new ServerNetwork(this)
 		}
+
+		new RemoteGroup(this, 0) // create our default remote group
 
 		Network.setGame(this)
 	}

@@ -55,9 +55,9 @@ export default class GameTicker {
 
 		// tick all the objects
 		let tickTime = performance.now()
+		this.scheduler.tick() // tick the scheduler
 		let tickedCount = this.tickObjects(usedDeltaTime * this.timescale) // tick all the game objects
 		let maxTickedCount = this.objects.size // how many objects we could've ticked
-		this.scheduler.tick() // tick the scheduler
 		this.lastTickTime = performance.now() - tickTime
 
 		// tick renderer

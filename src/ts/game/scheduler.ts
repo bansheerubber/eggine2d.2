@@ -8,7 +8,7 @@ export class ScheduleObject {
 	public owner: {} = undefined // the object that the function is being called on, if there even is one
 	public args: any[] = [] // the arguments we want to apply to our function
 	public creationTime: number // the time this schedule object was created
-	public time: number = 0 // the number of miliseconds we wait until we execute this schedule object. if 0, then we do not pay attention to this
+	public time: number = 0 // the number of seconds we wait until we execute this schedule object. if 0, then we do not pay attention to this
 	public frames: number = 0 // the number of frames we wait until we execute this schedule object. if 0, then we do not pay attention to this
 	public elapsedFrames: number = 0 // the number of frames that have elapsed since the time of creaiton
 
@@ -29,20 +29,20 @@ export class ScheduleObject {
 		this.owner = owner
 		this.call = call
 
-		this.creationTime = performance.now()
+		this.creationTime = performance.now() / 1000
 
 		this.scheduler = scheduler
 	}
 
 	// returns true if we execute the call, false if we didn't
-	public tick(): boolean {
+	public tick(currentTime: number): boolean {
 		this.elapsedFrames++
 
 		if(this.elapsedFrames >= this.frames && this.frames > 0) {
 			this.execute()
 			return true
 		}
-		else if(performance.now() - this.creationTime > this.time && this.time > 0) {
+		else if(currentTime - this.creationTime > this.time && this.time > 0) {
 			this.execute()
 			return true
 		}
@@ -81,7 +81,7 @@ export class Frames {
 }
 
 export default class Scheduler {
-	public scheduleObjects: ScheduleObject[] = []
+	private scheduleObjects: Set<ScheduleObject> = new Set()
 	public static activeScheduler: Scheduler
 	
 	constructor() {
@@ -89,39 +89,33 @@ export default class Scheduler {
 	}
 
 	public tick(): void {
-		for(let i = this.scheduleObjects.length - 1; i >= 0; i--) {
-			if(this.scheduleObjects[i].tick()) {
-				this.remove(this.scheduleObjects[i])
+		let currentTime = performance.now() / 1000
+		for(let scheduleObject of this.scheduleObjects.values()) {
+			if(scheduleObject.tick(currentTime)) {
+				this.cancel(scheduleObject)
 			}
 		}
 	}
 
-	public schedule(call: Function, args: any[], time: number | Frames, owner?: {}): ScheduleObject {
+	public schedule(time: number | Frames, call: Function, args: any[], owner?: {}): ScheduleObject {
 		let scheduleObject = new ScheduleObject(this, owner, call, args, time)
-		this.scheduleObjects.push(scheduleObject)
+		this.scheduleObjects.add(scheduleObject)
 		return scheduleObject
 	}
 
 	public static schedule(time: number | Frames, call: Function, ...args: any[]): ScheduleObject {
 		let scheduleObject = new ScheduleObject(this.activeScheduler, undefined, call, args, time)
-		this.activeScheduler.scheduleObjects.push(scheduleObject)
+		this.activeScheduler.scheduleObjects.add(scheduleObject)
 		return scheduleObject
 	}
 
 	// removes the schedule object from our array
 	public cancel(scheduleObject: ScheduleObject): void {
-		if(this.isPending(scheduleObject)) {
-			this.remove(scheduleObject)
-		}
+		this.scheduleObjects.delete(scheduleObject)
 	}
 
 	// if the input schedule object is pending, then we return true. if not, then false
 	public isPending(scheduleObject: ScheduleObject): boolean {
-		return this.scheduleObjects.indexOf(scheduleObject) != -1
-	}
-
-	// removes a schedule object from our array
-	private remove(scheduleObject: ScheduleObject): void {
-		this.scheduleObjects.splice(this.scheduleObjects.indexOf(scheduleObject), 1)
+		return this.scheduleObjects.has(scheduleObject)
 	}
 }

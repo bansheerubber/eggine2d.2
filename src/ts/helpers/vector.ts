@@ -1,7 +1,9 @@
 import Matter = require("matter-js");
+import { networkClass } from "../network/networkDecorators";
 
 type callback = (x: number, y: number) => void
 
+@networkClass()
 export default class Vector {
 	public x: number
 	public y: number
@@ -9,6 +11,8 @@ export default class Vector {
 	public onModified: callback
 
 	private matterVector: Matter.Vector
+
+	private static tempVectors: Vector[] = []
 
 
 	
@@ -154,5 +158,17 @@ export default class Vector {
 	// turns a positive x,y coordinate into a unique, single number
 	public unique(): number {
 		return ((this.x + this.y) * (this.x + this.y + 1)) / 2 + this.y
+	}
+
+	// returns true if the vectors are similar
+	public equals(vector: Vector): boolean {
+		return this.unique() == vector.unique()
+	}
+
+	public static getTempVector(index: number): Vector {
+		if(this.tempVectors[index] === undefined) {
+			this.tempVectors[index] = new Vector(0, 0)
+		}
+		return this.tempVectors[index]
 	}
 }

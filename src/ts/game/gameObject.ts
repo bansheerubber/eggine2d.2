@@ -6,6 +6,9 @@ import { Frames, ScheduleObject } from "./scheduler";
 export default abstract class GameObject {
 	public game: Game
 	public gameObjectOptions: GameObjectOptions
+	public isDestroyed: boolean = false
+
+
 
 	constructor(game: Game, gameObjectOptions: GameObjectOptions = {}) {
 		this.game = game
@@ -20,7 +23,7 @@ export default abstract class GameObject {
 
 	// schedule a call with Scheduler
 	public schedule(time: number | Frames, call: Function, ...args: any[]): ScheduleObject {
-		return this.game.ticker.scheduler.schedule(call, args, time, this)
+		return this.game.ticker.scheduler.schedule(time, call, args, this)
 	}
 
 	public get canTick() {
@@ -29,5 +32,6 @@ export default abstract class GameObject {
 
 	public destroy(): void {
 		this.game.ticker.objects.delete(this)
+		this.isDestroyed = true
 	}
 }

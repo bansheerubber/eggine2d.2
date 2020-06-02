@@ -27,7 +27,14 @@ export class KeybindSubCategory extends Category {
 	}
 }
 
-type callback = () => void
+type callback = (event: KeyboardEvent | MouseEvent) => void
+
+export enum KeybindModifier {
+	NONE = 0,
+	SHIFT = 0b001,
+	CONTROL = 0b010,
+	ALT = 0b100,
+}
 
 export class Keybind {
 	public category: KeybindCategory
@@ -40,6 +47,7 @@ export class Keybind {
 
 	public pressCallback: callback
 	public releaseCallback: callback
+	public mouseMoveCallback: callback
 
 	public isPressed: boolean = false
 
@@ -50,13 +58,10 @@ export class Keybind {
 
 
 
-	constructor(pressCallback: callback, releaseCallback: callback, key: string, modifier: number, name: string, description?: string, category?: KeybindCategory, subcategory?: KeybindSubCategory)  {
+	constructor(key: string, modifier: number, name: string, description?: string, category?: KeybindCategory, subcategory?: KeybindSubCategory)  {
 		KeybindController.initIndex(key, modifier)
 
 		KeybindController.map[key][modifier].push(this)
-
-		this.pressCallback = pressCallback
-		this.releaseCallback = releaseCallback
 
 		this.category = category
 		this.subcategory = subcategory
@@ -68,24 +73,47 @@ export class Keybind {
 		this.modifierMask = modifier
 	}
 
-	public onPress(): void {
+	public onPress(event: KeyboardEvent | MouseEvent): void {
 		if(this.pressCallback && !this.isPressed) {
-			this.pressCallback()
+			this.pressCallback(event)
 		}
 		this.isPressed = true
 	}
 
-	public onRelease(): void {
+	public onRelease(event: KeyboardEvent | MouseEvent): void {
 		if(this.releaseCallback && this.isPressed) {
-			this.releaseCallback()
+			this.releaseCallback(event)
 		}
 		this.isPressed = false
+	}
+
+	public onMouseMove(event: MouseEvent): void {
+		if(this.mouseMoveCallback && this.isPressed) {
+			this.mouseMoveCallback(event)
+		}
+	}
+
+	public down(callback: callback): Keybind {
+		this.pressCallback = callback
+		return this
+	}
+
+	public up(callback: callback): Keybind {
+		this.releaseCallback = callback
+		return this
+	}
+
+	public move(callback: callback): Keybind {
+		this.mouseMoveCallback = callback
+		KeybindController.mouseMoves.push(this)
+		return this
 	}
 }
 
 export default class KeybindController {
 	// map of the key string and key modifier to keybind object
 	public static map: { [index: string]: { [index: number]: Keybind[] } } = {}
+	public static mouseMoves: Keybind[] = []
 	private static lastModifierPress: number = 0
 	private static currentKeys: string[] = []
 
@@ -115,13 +143,13 @@ export default class KeybindController {
 
 		// stop the event's key
 		for(let keybind of this.getKeybinds(hitKey.toLowerCase(), modifierMask)) {
-			keybind.onPress()
+			keybind.onPress(event)
 		}
 
 		// go through all current keys at the current modifier and hit all of them
 		for(let key of this.currentKeys) {
 			for(let keybind of this.getKeybinds(key, modifierMask)) {
-				keybind.onPress()
+				keybind.onPress(event)
 			}	
 		}
 
@@ -145,7 +173,7 @@ export default class KeybindController {
 
 		// stop the event's key
 		for(let keybind of this.getKeybinds(hitKey.toLowerCase(), modifierMask | this.lastModifierPress)) {
-			keybind.onRelease()
+			keybind.onRelease(event)
 		}
 
 		this.currentKeys.splice(this.currentKeys.indexOf(hitKey), 1)
@@ -153,11 +181,17 @@ export default class KeybindController {
 		for(let key of this.currentKeys) {
 			let keybinds = this.getKeybinds(key, this.lastModifierPress, modifierMask)
 			for(let keybind of keybinds) {
-				keybind.onRelease()
+				keybind.onRelease(event)
 			}	
 		}
 
 		this.lastModifierPress = modifierMask
+	}
+
+	public static onMouseMove(event: MouseEvent): void {
+		for(let keybind of this.mouseMoves) {
+			keybind.onMouseMove(event)
+		}
 	}
 
 	public static getKeybinds(key: string, modifier: number, exclude?: number): Keybind[] {
@@ -202,4 +236,5 @@ if(typeof document != "undefined") {
 
 	document.addEventListener("mousedown", KeybindController.onPress.bind(KeybindController))
 	document.addEventListener("mouseup", KeybindController.onRelease.bind(KeybindController))
+	document.addEventListener("mousemove", KeybindController.onMouseMove.bind(KeybindController))
 }

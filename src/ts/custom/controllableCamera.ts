@@ -2,7 +2,7 @@ import Camera from "../render/camera";
 import Vector from "../helpers/vector";
 import Game from "../game/game";
 import { Keybind } from "../game/keybinds";
-import OverworldGamemode from "./hexes/overworldGamemode";
+import OverworldGamemode from "./gamemodes/overworldGamemode";
 
 interface CameraMove {
 	up: number,
@@ -19,6 +19,7 @@ export default class ControllableCamera extends Camera {
 		left: 0
 	}
 	public speed: number = 750
+	public active: boolean = true // whether or not we can use the keybinds to move this camera around
 
 
 
@@ -26,56 +27,54 @@ export default class ControllableCamera extends Camera {
 		super(game)
 
 		// move the camera up with W
-		new Keybind(() => {
+		new Keybind("w", Keybind.None, "Move Camera Up").down(() => {
 			this.move.up = 1
-		}, () => {
+		}).up(() => {
 			this.move.up = 0
-		}, "w", Keybind.None, "Move Camera Up")
+		})
 
 		// move the camera down with S
-		new Keybind(() => {
+		new Keybind("s", Keybind.None, "Move Camera Down").down(() => {
 			this.move.down = 1
-		}, () => {
+		}).up(() => {
 			this.move.down = 0
-		}, "s", Keybind.None, "Move Camera Down")
+		})
 
 		// move the camera left with A
-		new Keybind(() => {
+		new Keybind("a", Keybind.None, "Move Camera Left").down(() => {
 			this.move.left = 1
-		}, () => {
+		}).up(() => {
 			this.move.left = 0
-		}, "a", Keybind.None, "Move Camera Left")
+		})
 
 		// move the camera right with D
-		new Keybind(() => {
+		new Keybind("d", Keybind.None, "Move Camera Right").down(() => {
 			this.move.right = 1
-		}, () => {
+		}).up(() => {
 			this.move.right = 0
-		}, "d", Keybind.None, "Move Camera Right")
+		})
 
 		// zoom in the camera with +
-		new Keybind(() => {
+		new Keybind("=", Keybind.None, "Zoom In").down(() => {
 			this.zoom += this.zoom * 0.1
-		}, () => {
-			
-		}, "=", Keybind.None, "Zoom In")
+		})
 
 		// zoom out the camera with -
-		new Keybind(() => {
+		new Keybind("-", Keybind.None, "Zoom Out").down(() => {
 			this.zoom += this.zoom * -0.1
-		}, () => {
-			
-		}, "-", Keybind.None, "Zoom Out")
+		})
 	}
 	
 	public tick(deltaTime: number): void {
 		// apply move to the position
-		let speed = this.speed * deltaTime / this.zoom
-		this.position.add(new Vector(-this.move.left * speed + this.move.right * speed, -this.move.up * speed + this.move.down * speed))
+		if(this.active) {
+			let speed = this.speed * deltaTime / this.zoom
+			this.position.add(new Vector(-this.move.left * speed + this.move.right * speed, -this.move.up * speed + this.move.down * speed))
+		}
 
 		let halfWidth = (this.renderer.width / this.zoom) / 2;
 		let halfHeight = (this.renderer.height / this.zoom) / 2;
-		(this.game.gamemode as OverworldGamemode).minimapUI.setState({
+		(this.game.gamemode as OverworldGamemode)?.minimapUI?.setState({
 			cameraX: this.position.x,
 			cameraY: this.position.y,
 			leftCornerX: this.position.x - halfWidth,
@@ -87,6 +86,7 @@ export default class ControllableCamera extends Camera {
 		super.tick(deltaTime)
 	}
 	
+	// called when the camera is switched to
 	public onActivated(): void {
 		this.move.up = 0
 		this.move.down = 0
@@ -94,6 +94,7 @@ export default class ControllableCamera extends Camera {
 		this.move.left = 0
 	}
 
+	// called when the camera is switched away from
 	public onDeActivated(): void {
 		this.move.up = 0
 		this.move.down = 0

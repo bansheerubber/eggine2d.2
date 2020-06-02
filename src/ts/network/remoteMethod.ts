@@ -2,7 +2,7 @@ import NetworkMetadata from "./networkMetadata";
 import RemoteObject from "./remoteObject";
 import ClientNetwork from "./clientNetwork";
 import ServerNetwork from "./serverNetwork";
-import { Network } from "./network";
+import Network from "./network";
 import Validator from "./validators/validator";
 import Client from "./client"
 
@@ -12,6 +12,7 @@ interface ValidatedParameter {
 }
 
 export interface RemoteMethodPayload {
+	groupID: number
 	objectID: number
 	methodID: number
 	returnID: number
@@ -119,7 +120,6 @@ export default class RemoteMethod {
 
 	public recalculateIndex(): void {
 		this.id = this.networkMetadata.remoteMethods.indexOf(this)
-
 	}
 
 	public addValidatedParameter(index: number, typeClass: any): void {
@@ -150,7 +150,7 @@ export default class RemoteMethod {
 				}
 			}
 			
-			(remoteObject.game.network as ClientNetwork).requestServerMethod(remoteObject.remoteID, methodID, args)
+			(remoteObject.game.network as ClientNetwork).requestServerMethod(remoteObject.remoteGroupID, remoteObject.remoteID, methodID, args)
 			
 			if(this.isInstantCall) {
 				this.call.apply(remoteObject, args)
@@ -169,7 +169,7 @@ export default class RemoteMethod {
 				}
 			}
 			
-			(remoteObject.game.network as ServerNetwork).requestClientMethod(remoteObject, remoteObject.remoteID, methodID, onlyCallOnOwner, args)
+			(remoteObject.game.network as ServerNetwork).requestClientMethod(remoteObject, remoteObject.remoteGroupID, remoteObject.remoteID, methodID, onlyCallOnOwner, args)
 
 			if(this.isInstantCall) {
 				this.call.apply(remoteObject, args)
@@ -194,7 +194,9 @@ export default class RemoteMethod {
 					// disconnect the client for failing their argument check
 					client.destroy()
 
-					return { error: "failed validation" }
+					return {
+						error: "failed validation"
+					}
 				}
 			}
 		}

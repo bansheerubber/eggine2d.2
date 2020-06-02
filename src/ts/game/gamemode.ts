@@ -13,7 +13,7 @@ export default class Gamemode extends RemoteObject {
 		super(game)
 	}
 
-	reconstructor(game: Game) {
+	public reconstructor(game: Game, ...args: any[]): void {
 		super.reconstructor(game)
 		this.game.gamemode = this
 	}

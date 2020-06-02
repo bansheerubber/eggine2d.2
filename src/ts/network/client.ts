@@ -3,7 +3,7 @@ import Game from "../game/game";
 import { gameClass, networkClass, illegal } from "./networkDecorators";
 import ServerNetwork from "./serverNetwork";
 import ClientInterpreter from "./clientInterpreter";
-import { Network, RemoteObjectSend } from "./network";
+import Network, { RemoteObjectSend } from "./network";
 
 // represents a connection that may send various network commands to objects in our server/client scene
 @networkClass()
@@ -80,7 +80,7 @@ export default class Client extends RemoteObject {
 	private send(commandID: number, payload: any): void {
 		if(this.websocket.readyState == 1 && this.canSend) {
 			let data = Network.stringifyObject([commandID, payload])
-			this.websocket.send(data);
+			this.websocket.send(data)
 		}
 	}
 
@@ -95,8 +95,9 @@ export default class Client extends RemoteObject {
 		})
 	}
 
-	public sendRemoteMethod(objectID: number, methodID: number, returnID: number, args: any[]): void {
+	public sendRemoteMethod(groupID: number, objectID: number, methodID: number, returnID: number, args: any[]): void {
 		this.send(1, {
+			groupID,
 			objectID,
 			methodID,
 			returnID,
