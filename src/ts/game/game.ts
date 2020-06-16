@@ -66,6 +66,10 @@ export default class Game {
 		Network.setGame(this)
 	}
 
+	public getNetworkStatic(): typeof Network {
+		return Network
+	}
+
 	public start(): void {
 		this.ticker.start()
 	}

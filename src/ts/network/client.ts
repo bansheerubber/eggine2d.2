@@ -16,7 +16,7 @@ export default class Client extends RemoteObject {
 
 	@illegal private lastPing: number = 0
 	@illegal private lastActive: number = 0
-	private static pingTime: number = 100
+	private static pingTime: number = 1000
 	@illegal private canSend: boolean = false
 
 

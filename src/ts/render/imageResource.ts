@@ -4,6 +4,7 @@ import * as PIXI from "pixi.js"
 export default class ImageResource {
 	public static queueImage(imageURL: string) {
 		PIXI.Loader.shared.add(imageURL)
+		return this
 	}
 
 	public static async loadImages() {

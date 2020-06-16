@@ -36,6 +36,8 @@ interface SendObject {
 
 export default class Network {
 	public static game: Game
+
+	public static debug: boolean = false
 	
 	public static networkMetadata: NetworkMetadata[] = []
 	public static stubObjects: {
@@ -84,6 +86,10 @@ export default class Network {
 
 	// parse a network safe string and converts it into a real object
 	public static parseObject(input: string): any {
+		if(this.debug) {
+			console.log(input)
+		}
+		
 		try {
 			return this.deConvertObject(JSON.parse(input))
 		}
@@ -314,16 +320,19 @@ export default class Network {
 		if(ownerObject.remoteGroupID != -1 && ownerObject.remoteID != -1
 			&& this.game.network.remoteClassReferences[ownerObject.remoteGroupID] 
 			&& this.game.network.remoteClassReferences[ownerObject.remoteGroupID][ownerObject.remoteID]
-			&& this.game.network.remoteClassReferences[ownerObject.remoteGroupID][ownerObject.remoteID][position]) {
-			
+			&& this.game.network.remoteClassReferences[ownerObject.remoteGroupID][ownerObject.remoteID][position]
+		) {	
 			let object = this.game.network.remoteClassReferences[ownerObject.remoteGroupID][ownerObject.remoteID][position]
 			object.reconstructor(this.game, ...this.buildInstanceVariables(this.classToMetadata(remoteClass), object)) // call the reconstructor with correct instance variables
 			return object as any
 		}
-		else { // if we do not find a class reference at the position, then create a new reference
+		else if(remoteClass.prototype instanceof RemoteObject) { // if we do not find a class reference at the position, then create a new reference
 			let remoteObject = new remoteClass(...args) as T
 			this.game.network.addRemoteClassReference(ownerObject, remoteObject as any, position)
 			return remoteObject
+		}
+		else {
+			return new remoteClass(...args) as T
 		}
 	}
 }

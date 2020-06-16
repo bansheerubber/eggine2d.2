@@ -40,9 +40,12 @@ export default class RemoteObject extends GameObject {
 		this.game = game
 		let options = args[0] as GameObjectOptions
 
-		if(options) {
-			this.remoteGroupID = options.customRemoteGroupID === undefined ? -1 : options.customRemoteGroupID
-			this.remoteID = options.customRemoteID === undefined ? -1 : options.customRemoteID
+		if(options?.customRemoteGroupID) {
+			this.remoteGroupID = options.customRemoteGroupID
+		}
+
+		if(options?.customRemoteID) {
+			this.remoteID = options.customRemoteID
 		}
 
 		if(this.remoteGroupID != -1 && this.remoteID != -1) {
@@ -56,7 +59,12 @@ export default class RemoteObject extends GameObject {
 
 	// returns the last remote return created by our network
 	public getRemoteReturn(): Promise<any> {
-		return (this.game.network as ClientNetwork).getLastRemoteReturn().promise
+		if(this.game.network instanceof ClientNetwork) {
+			return (this.game.network as ClientNetwork).getLastRemoteReturn().promise
+		}
+		else {
+			return (this.game.network as ServerNetwork).getLastRemoteReturns().promise // TODO add compatibility for remote methods that execute on multiple clients	
+		}
 	}
 
 	// gets the last remote returns created by the server network

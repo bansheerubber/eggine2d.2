@@ -4,8 +4,6 @@ import Game from "../game/game";
 import RemoteObject from "./remoteObject";
 import { RemoteMethodPayload, RemoteReturnPayload, ClientRemoteReturn } from "./remoteMethod";
 import Client from "./client";
-import { ServerNetworkHost } from "./serverNetwork";
-import BattleTeam from "../custom/units/battleTeam";
 import Scheduler from "../game/scheduler";
 
 enum ClientNetworkConnetionStatus {

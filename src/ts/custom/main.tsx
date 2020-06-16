@@ -39,20 +39,20 @@ export default async function(game: Game) {
 	if(game.isClient) {
 		// ImageResource.queueImage("./data/sprites/units/antiair.json")
 		ImageResource.queueImage("./data/sprites/units/jeep.json")
-		ImageResource.queueImage("./data/sprites/hexes/hex.png")
-		ImageResource.queueImage("./data/sprites/hexes/mountain.png")
-		ImageResource.queueImage("./data/sprites/hexes/water.png")
-		ImageResource.queueImage("./data/sprites/hexes/outlines/outline.json")
-		ImageResource.queueImage("./data/sprites/hexes/outlines/selected.png")
-		ImageResource.queueImage("./data/sprites/hexes/shading/shaded1.png")
-		ImageResource.queueImage("./data/sprites/hexes/shading/shaded2.png")
-		ImageResource.queueImage("./data/sprites/hexes/shading/shaded3.png")
-		ImageResource.queueImage("./data/sprites/hexes/shading/shaded4.png")
-		ImageResource.queueImage("./data/sprites/hexes/shading/shaded5.png")
-		ImageResource.loadImages().then(() => {
+		.queueImage("./data/sprites/hexes/hex.png")
+		.queueImage("./data/sprites/hexes/mountain.png")
+		.queueImage("./data/sprites/hexes/water.png")
+		.queueImage("./data/sprites/hexes/outlines/outline.json")
+		.queueImage("./data/sprites/hexes/outlines/selected.png")
+		.queueImage("./data/sprites/hexes/shading/shaded1.png")
+		.queueImage("./data/sprites/hexes/shading/shaded2.png")
+		.queueImage("./data/sprites/hexes/shading/shaded3.png")
+		.queueImage("./data/sprites/hexes/shading/shaded4.png")
+		.queueImage("./data/sprites/hexes/shading/shaded5.png")
+		.loadImages().then(() => {
 			// unitCollision(game)
 
-			let gamemode = new BattleGamemode(game, new HexMap(game))
+			/*let gamemode = new BattleGamemode(game, new HexMap(game))
 			game.gamemode = gamemode
 
 			ReactDOM.render(<MinimapUI game={game}></MinimapUI>, document.getElementById("minimapContainer"))
@@ -66,12 +66,12 @@ export default async function(game: Game) {
 			gamemode.hexMap.hexes.get(new Vector(10, 5).unique()).unit = unit
 
 			unit.attack.setArc(4, 1)
-			unit.attack.rotate(0)
+			unit.attack.rotate(0)*/
 
-			// ReactDOM.render(<MainMenuUI game={game}></MainMenuUI>, document.getElementById("mainMenu"));
+			ReactDOM.render(<MainMenuUI game={game}></MainMenuUI>, document.getElementById("mainMenu"));
 
-			// (game.network as ClientNetwork).client.addOption("ws://localhost:" + ServerNetworkHost.port, "test server");
-			// (game.network as ClientNetwork).client.connectByName("test server")
+			(game.network as ClientNetwork).client.addOption("ws://localhost:" + ServerNetworkHost.port, "test server");
+			(game.network as ClientNetwork).client.connectByName("test server")
 		})
 
 		game.renderer.camera = new ControllableCamera(game);
@@ -82,9 +82,9 @@ export default async function(game: Game) {
 		game.gamemode = gamemode
 		let team = new BattleTeam(game)
 
-		gamemode.hexMap.loadMap("./data/map.egg").then(() => {
-			let unit = new JeepUnit(game, team)
-			gamemode.hexMap.hexes.get(new Vector(2, 2).unique()).unit = unit
-		})
+		// gamemode.hexMap.loadMap("./data/map.egg").then(() => {
+		// 	let unit = new JeepUnit(game, team)
+		// 	gamemode.hexMap.hexes.get(new Vector(2, 2).unique()).unit = unit
+		// })
 	}
 }

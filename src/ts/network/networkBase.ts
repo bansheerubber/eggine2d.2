@@ -20,7 +20,7 @@ export default abstract class NetworkBase {
 	public remoteObjectsSet: Set<RemoteObject> = new Set<RemoteObject>()
 
 	public remoteClassReferences: { // unchanged
-		[groupID: number]: { 
+		[remoteGroupID: number]: { 
 			[remoteID: number]: RemoteObject[]
 		}
 	} = {}
@@ -95,7 +95,6 @@ export default abstract class NetworkBase {
 		if(this.remoteClassReferences[ownerObject.remoteGroupID] === undefined) {
 			this.remoteClassReferences[ownerObject.remoteGroupID] = []
 		}
-		
 		this.remoteClassReferences[ownerObject.remoteGroupID][ownerObject.remoteID] = array
 	}
 

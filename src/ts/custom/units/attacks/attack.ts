@@ -3,14 +3,16 @@ import Unit from "../unit";
 import Game from "../../../game/game";
 import HexGroup from "../../hexes/hexGroup";
 import RemoteObject from "../../../network/remoteObject";
+import { networkClass, illegal } from "../../../network/networkDecorators";
 
 /*
 attacks are something the unit performs during its attack phase. an attack can be overridden to do anything. additionally, if a unit can attack during a turn, the attack will trigger. units can hotswap attacks. while having an attack object for every single unit, even for units of the same time, is a waste of memory it shouldn't matter because we will never have like 5000000 units or whatever
 */
+@networkClass("%[ArcAttack: unit]")
 export default abstract class Attack extends RemoteObject {
 	protected unit: Unit // the owner of this attack
 	public hasAttacked: boolean = false // this is used to reload attacks at the end of a round
-	public hexes: HexGroup
+	@illegal public hexes: HexGroup
 
 
 

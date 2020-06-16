@@ -117,10 +117,14 @@ export default class ServerNetwork extends NetworkBase {
 				let remoteObjectReferences: RemoteObjectReference[] = []
 				let temp: RemoteObject[]
 				if((temp = this.getRemoteClassReferences(remoteObject))) { // get the class references of a paticular object, and create a new array that holds all their remoteIDs
-					for(let remoteObject of temp) {
+					for(let remoteObject2 of temp) {
+						if(remoteObject2.remoteID == -1) {
+							console.log(remoteObject2, remoteObject.constructor.name)
+						}
+						
 						remoteObjectReferences.push({
-							remoteGroupID: remoteObject.remoteGroupID,
-							remoteID: remoteObject.remoteID,
+							remoteGroupID: remoteObject2.remoteGroupID,
+							remoteID: remoteObject2.remoteID,
 						})
 					}
 				}
