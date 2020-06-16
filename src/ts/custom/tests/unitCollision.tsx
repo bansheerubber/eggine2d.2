@@ -9,6 +9,7 @@ import * as React from "react"
 import * as ReactDOM from "react-dom"
 import MinimapUI from "../hexes/minimapUI";
 import assert from "./assert";
+import test from "./test";
 
 export default async function unitCollision(game: Game) {
 	let gamemode = new BattleGamemode(game, new HexMap(game))
@@ -21,8 +22,7 @@ export default async function unitCollision(game: Game) {
 
 	let team = new BattleTeam(game)
 
-	// test 1: two units moving in single file
-	{
+	test("Two units moving in single file", async () => {
 		let unit1 = new JeepUnit(game, team)
 		let unit2 = new JeepUnit(game, team)
 
@@ -39,21 +39,13 @@ export default async function unitCollision(game: Game) {
 
 		await gamemode.movePhase()
 
-		try {
-			assert(
-				unit1.hex.getPosition().equals(new Vector(3, 4))
-				&& unit2.hex.getPosition().equals(new Vector(3, 5))
-				, "Unit Movement Test #1: Failed"
-			)
-			console.log("Unit Movement Test #1: Passed")
-		}
-		catch(error) {
-			console.error(error.message)
-		}
-	}
+		assert(
+			unit1.hex.getPosition().equals(new Vector(3, 4))
+			&& unit2.hex.getPosition().equals(new Vector(3, 5))
+		)
+	})
 
-	// test 2: two units moving onto the same tile, with same health/attack/whatever is used to determine unit collision priority
-	{
+	test("Two units w/ same priority moving onto same tile", async () => {
 		let unit1 = new JeepUnit(game, team)
 		let unit2 = new JeepUnit(game, team)
 
@@ -70,21 +62,14 @@ export default async function unitCollision(game: Game) {
 
 		await gamemode.movePhase()
 
-		try {
-			assert(
-				unit1.hex.getPosition().equals(new Vector(6, 3))
-				&& unit2.hex.getPosition().equals(new Vector(6, 5))
-				, "Unit Movement Test #2: Failed"
-			)
-			console.log("Unit Movement Test #2: Passed")
-		}
-		catch(error) {
-			console.error(error.message)
-		}
-	}
+		assert(
+			unit1.hex.getPosition().equals(new Vector(6, 3))
+			&& unit2.hex.getPosition().equals(new Vector(6, 5))
+		)
+	})
 
 	// test 3: combination of tests 1 and 2
-	{
+	test("Two units w/ same priority moving in single file", async () => {
 		let unit1 = new JeepUnit(game, team)
 		let unit2 = new JeepUnit(game, team)
 		let unit3 = new JeepUnit(game, team)
@@ -105,22 +90,15 @@ export default async function unitCollision(game: Game) {
 
 		await gamemode.movePhase()
 
-		try {
-			assert(
-				unit1.hex.getPosition().equals(new Vector(10, 3))
-				&& unit2.hex.getPosition().equals(new Vector(10, 4))
-				&& unit3.hex.getPosition().equals(new Vector(9, 4))
-				, "Unit Movement Test #3: Failed"
-			)
-			console.log("Unit Movement Test #3: Passed")
-		}
-		catch(error) {
-			console.error(error.message)
-		}
-	}
+		assert(
+			unit1.hex.getPosition().equals(new Vector(10, 3))
+			&& unit2.hex.getPosition().equals(new Vector(10, 4))
+			&& unit3.hex.getPosition().equals(new Vector(9, 4))
+		)
+	})
 
 	// test 4: moving unit going onto a stationary one
-	{
+	test("Moving unit onto a stationary unit", async () => {
 		let unit1 = new JeepUnit(game, team)
 		let unit2 = new JeepUnit(game, team)
 
@@ -136,16 +114,9 @@ export default async function unitCollision(game: Game) {
 
 		await gamemode.movePhase()
 
-		try {
-			assert(
-				unit1.hex.getPosition().equals(new Vector(13, 3))
-				&& unit2.hex.getPosition().equals(new Vector(13, 4))
-				, "Unit Movement Test #4: Failed"
-			)
-			console.log("Unit Movement Test #4: Passed")
-		}
-		catch(error) {
-			console.error(error.message)
-		}
-	}
+		assert(
+			unit1.hex.getPosition().equals(new Vector(13, 3))
+			&& unit2.hex.getPosition().equals(new Vector(13, 4))
+		)
+	})
 }
