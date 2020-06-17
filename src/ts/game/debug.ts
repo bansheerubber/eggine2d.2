@@ -4,6 +4,7 @@ import Text from "../render/text";
 import Matter = require("matter-js");
 import { Keybind, KeybindModifier } from "./keybinds";
 import ClientNetwork from "../network/clientNetwork";
+import Network from "../network/network";
 
 class Average {
 	public averageArray: number[] = []
@@ -202,5 +203,9 @@ export default class Debug {
 		
 		let end = performance.now()
 		return (end - start) / 1000 // return speed in seconds
+	}
+
+	public getNetworkStatic(): typeof Network {
+		return Network
 	}
 }

@@ -1,6 +1,5 @@
 import GameTicker from "./gameTicker";
 import Network from "../network/network";
-import RemoteObject from "../network/remoteObject";
 import ClientNetwork from "../network/clientNetwork";
 import ServerNetwork from "../network/serverNetwork";
 import GameRenderer from "../render/gameRenderer";
@@ -64,10 +63,6 @@ export default class Game {
 		new RemoteGroup(this, 0) // create our default remote group
 
 		Network.setGame(this)
-	}
-
-	public getNetworkStatic(): typeof Network {
-		return Network
 	}
 
 	public start(): void {
