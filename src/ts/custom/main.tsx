@@ -82,9 +82,9 @@ export default async function(game: Game) {
 		game.gamemode = gamemode
 		let team = new BattleTeam(game)
 
-		// gamemode.hexMap.loadMap("./data/map.egg").then(() => {
-		// 	let unit = new JeepUnit(game, team)
-		// 	gamemode.hexMap.hexes.get(new Vector(2, 2).unique()).unit = unit
-		// })
+		gamemode.hexMap.loadMap("./data/map.egg").then(() => {
+			let unit = new JeepUnit(game, team)
+			gamemode.hexMap.hexes.get(new Vector(2, 2).unique()).unit = unit
+		})
 	}
 }

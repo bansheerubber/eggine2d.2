@@ -24,7 +24,7 @@ export default abstract class Unit extends RemoteObject {
 	protected static resource: string
 	@illegal protected sprite: SpriteSheet
 	@illegal public attack: ArcAttack // we are able to get/set our attack whenever we want to, without worrying about consequences
-	@illegal public movement: Movement // we are able to get/set our movement whenever we want to, without worrying about consequences
+	public movement: Movement // we are able to get/set our movement whenever we want to, without worrying about consequences
 	public team: BattleTeam
 
 	protected hex_: Hex

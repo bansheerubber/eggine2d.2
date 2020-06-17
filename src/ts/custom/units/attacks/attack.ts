@@ -21,6 +21,11 @@ export default abstract class Attack extends RemoteObject {
 		this.unit = unit
 	}
 
+	public reconstructor(game: Game, unit: Unit): void {
+		super.reconstructor(game, unit)
+		this.unit = unit
+	}
+
 	// whether or not the attack can be performed. is checked basically at all times
 	public abstract canAttack(): boolean
 
