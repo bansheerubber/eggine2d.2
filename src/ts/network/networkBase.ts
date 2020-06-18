@@ -1,25 +1,24 @@
 import RemoteObject from "./remoteObject";
 import Game from "../game/game";
 import Client from "./client"
-import { RemoteMethodPayload, ClientRemoteReturn } from "./remoteMethod";
 import RemoteGroup from "./remoteGroup";
 import { StubObject } from "./network";
 
 // base class for the server/client network classes, has some abstract functions
 export default abstract class NetworkBase {
-	public remoteObjects: { // changed
-		[groupID: number]: { 
+	public remoteObjects: {
+		[remoteGroupID: number]: { 
 			[remoteID: number]: RemoteObject
 		}
 	} = {}
 	
-	public remoteGroups: { // changed
-		[groupID: number]: RemoteGroup
+	public remoteGroups: {
+		[remoteGroupID: number]: RemoteGroup
 	} = {}
 
 	public remoteObjectsSet: Set<RemoteObject> = new Set<RemoteObject>()
 
-	public remoteClassReferences: { // unchanged
+	public remoteClassReferences: {
 		[remoteGroupID: number]: { 
 			[remoteID: number]: RemoteObject[]
 		}
@@ -27,7 +26,7 @@ export default abstract class NetworkBase {
 
 	public game: Game
 
-	public hasBeenReconstructed: { // unchanged
+	public hasBeenReconstructed: {
 		[remoteGroupID: number]: {
 			[remoteID: number]: boolean
 		}
@@ -35,17 +34,17 @@ export default abstract class NetworkBase {
 
 	public clients: Set<Client> = new Set<Client>()
 
-	public remoteReturns: { // unchanged
+	public remoteReturns: {
 		[key: number]: any
 	} = {}
 
 	protected remoteReturnCount: number = 0
 
-	protected remoteResolves: { // unchanged
+	protected remoteResolves: {
 		[key: number]: (value: any) => void
 	} = {}
 
-	protected remoteRejects: { // unchanged
+	protected remoteRejects: {
 		[key: number]: (reason: any) => void
 	} = {}
 

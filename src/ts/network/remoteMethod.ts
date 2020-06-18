@@ -128,6 +128,11 @@ export default class RemoteMethod {
 				validateClass: typeClass,
 				index,
 			}
+
+			let validator = Network.validators.get(typeClass)
+			if(!validator) {
+				console.error(`Remote Method: Undefined validator for ${typeClass.name}`)
+			}
 		}
 	}
 
@@ -186,7 +191,9 @@ export default class RemoteMethod {
 				let validator = Network.validators.get(validation.validateClass)
 				if(!validator) {
 					console.error(`Remote Method: Undefined validator for ${validation.validateClass.name}`)
-					return { error: "undefined validator" }
+					return {
+						error: "undefined validator"
+					}
 				}
 				else if(!validator.validate(args[i])) {
 					console.error(`Remote Method: Failed to validate ${validation.validateClass.name} at arg index ${i} for method ${this.name}`)
