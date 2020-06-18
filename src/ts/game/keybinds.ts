@@ -73,6 +73,10 @@ export class Keybind {
 		this.modifierMask = modifier
 	}
 
+	/**
+	 * called when bind is used
+	 * @param event
+	 */
 	public onPress(event: KeyboardEvent | MouseEvent): void {
 		if(this.pressCallback && !this.isPressed) {
 			this.pressCallback(event)
@@ -80,6 +84,10 @@ export class Keybind {
 		this.isPressed = true
 	}
 
+	/**
+	 * called when bind is released
+	 * @param event 
+	 */
 	public onRelease(event: KeyboardEvent | MouseEvent): void {
 		if(this.releaseCallback && this.isPressed) {
 			this.releaseCallback(event)
@@ -87,22 +95,37 @@ export class Keybind {
 		this.isPressed = false
 	}
 
+	/**
+	 * called if mouse moves
+	 */
 	public onMouseMove(event: MouseEvent): void {
 		if(this.mouseMoveCallback && this.isPressed) {
 			this.mouseMoveCallback(event)
 		}
 	}
 
+	/**
+	 * sets the down callback
+	 * @param callback
+	 */
 	public down(callback: callback): Keybind {
 		this.pressCallback = callback
 		return this
 	}
 
+	/**
+	 * sets the up callback
+	 * @param callback
+	 */
 	public up(callback: callback): Keybind {
 		this.releaseCallback = callback
 		return this
 	}
 
+	/**
+	 * sets the move callback
+	 * @param callback
+	 */
 	public move(callback: callback): Keybind {
 		this.mouseMoveCallback = callback
 		KeybindController.mouseMoves.push(this)

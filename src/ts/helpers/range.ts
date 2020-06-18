@@ -11,7 +11,10 @@ export default class Range {
 		this.max = max
 	}
 
-	// gets a random integer within the range
+	/**
+	 * gets a random integer within the range
+	 * @param seed
+	 */
 	public getRandomInt(seed?: number): number {
 		let min = Math.ceil(this.min)
 		let max = Math.floor(this.max)
@@ -23,7 +26,10 @@ export default class Range {
 		return value
 	}
 
-	// gets a random decimal within the range
+	/**
+	 * gets a random decimal within the range
+	 * @param seed
+	 */
 	public getRandomDec(seed?: number): number {
 		if(seed) {
 			Random.seed = seed
@@ -32,15 +38,22 @@ export default class Range {
 		return value
 	}
 
-
-	// gets a random integer within the range	
+	/**
+	 * gets a random integer within the range
+	 * @param min
+	 * @param max
+	 */
 	public static getRandomInt(min: number, max: number): number {
 		min = Math.ceil(min)
 		max = Math.floor(max)
 		return Math.floor(Math.random() * (max - min + 1)) + min
 	}
 
-	// gets a random decimal within the range
+	/**
+	 * gets a random decimal within the range
+	 * @param min
+	 * @param max
+	 */
 	public static getRandomDec(min: number, max: number): number {
 		return Math.random() * (max - min) + min
 	}

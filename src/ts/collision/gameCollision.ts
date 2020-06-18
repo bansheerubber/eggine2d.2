@@ -35,12 +35,20 @@ export default class GameCollision {
 		Matter.Engine.update(this.engine, deltaTime * 1000, deltaTime / lastDeltaTime)
 	}
 
+	/**
+	 * adds the collidable to our set and to Matter.js
+	 * @param collidable
+	 */
 	public add(collidable: Collidable): void {
 		Matter.World.add(this.engine.world, collidable.body)
 		this.collidables.add(collidable)
 		this.bodyMap.set(collidable.body, collidable)
 	}
 
+	/**
+	 * removes the collidable from our set and from Matter.js
+	 * @param collidable
+	 */
 	public remove(collidable: Collidable): void {
 		Matter.World.remove(this.engine.world, collidable.body)
 		this.collidables.delete(collidable)

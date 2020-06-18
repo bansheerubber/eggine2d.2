@@ -59,7 +59,11 @@ export default class HexMap extends RemoteObject {
 		}
 	}
 
-	// gets the hex underneath the given mouse position
+	/**
+	 * gets the hex underneath the given mouse coordinates
+	 * @param mouseX 
+	 * @param mouseY 
+	 */
 	public getHexUnderMouse(mouseX: number, mouseY: number): Hex {
 		// detects if the world space is within a hex or not
 		function canSelect(hex: Hex, worldSpace: Vector) {
@@ -117,6 +121,9 @@ export default class HexMap extends RemoteObject {
 		}
 	}
 
+	/**
+	 * sets the selected hex
+	 */
 	public set selectedHex(hex: Hex) {
 		this.selectedHex_?.onDeSelected()
 		this.selectedHex_ = hex
@@ -131,27 +138,47 @@ export default class HexMap extends RemoteObject {
 		}
 	}
 
+	/**
+	 * @return currently selected hex
+	 */
 	public get selectedHex(): Hex {
 		return this.selectedHex_
 	}
 
-	// adds a hex to our map
+	/**
+	 * adds a hex to the map
+	 * @param hex
+	 */
 	public addHex(hex: Hex): Hex {
 		this.hexes.set(hex.getPosition().unique(), hex)
 		hex.map = this
 		return hex
 	}
 
-	// removes a hex from our map
+	/**
+	 * removes the hex from the map
+	 * @param hex
+	 */
 	public removeHex(hex: Hex): Hex {
 		this.hexes.delete(hex.getPosition().unique())
 		return hex
 	}
 
+	/**
+	 * registers a hex to a particular id. this id is used to save/load hexes to file
+	 * @param id
+	 * @param classReference hex class
+	 */
 	public static registerHexClass(id: number, classReference: typeof Hex): void {
 		this.hexIdToClass[id] = classReference
 	}
 
+	/**
+	 * creates a hex at the specified hex coordinates
+	 * @param id hex id
+	 * @param x hex coord
+	 * @param y hex coord
+	 */
 	private createHex(id: number, x: number, y: number): Hex {
 		let hex = new (HexMap.hexIdToClass[id] as any)(this.game, this.hexCount) as Hex
 		hex.map = this
@@ -160,6 +187,11 @@ export default class HexMap extends RemoteObject {
 		return hex
 	}
 
+	/**
+	 * creates an entirely grass map from the specified width and heights
+	 * @param width
+	 * @param height
+	 */
 	public createGrassMap(width: number, height: number): void {
 		for(let x = 0; x < width; x++) {
 			for(let y = 0; y < height; y++) {
@@ -172,7 +204,10 @@ export default class HexMap extends RemoteObject {
 		this.game.renderer?.camera.position.copy(this.getCenter())
 	}
 
-	// gets the center of the map
+	/**
+	 * gets the center of the map
+	 * @return world coordinates
+	 */
 	public getCenter(): Vector {
 		let averagePosition = new Vector(0, 0)
 		let count = 0
@@ -188,6 +223,10 @@ export default class HexMap extends RemoteObject {
 		return averagePosition
 	}
 
+	/**
+	 * loads a map from file
+	 * @param resource url or file path
+	 */
 	public async loadMap(resource: string): Promise<void> {
 		return new Promise((resolve, reject) => {
 			this.mapFile = resource;

@@ -1,5 +1,5 @@
 class Leaf {
-	private _children: Leaf[] = []
+	private _children: Set<Leaf> = new Set<Leaf>()
 	private _parent: Leaf
 
 	private classReference: any
@@ -8,33 +8,55 @@ class Leaf {
 		this.classReference = classReference
 	}
 
+	/**
+	 * @return class reference of our leaf
+	 */
 	public getClassReference(): any {
 		return this.classReference
 	}
 
-	public getChildren(): Leaf[] {
+	/**
+	 * children in our leaf
+	 */
+	public getChildren(): Set<Leaf> {
 		return this._children
 	}
 
+	/**
+	 * adds a child
+	 * @param child
+	 */
 	public addChild(child: Leaf): void {
-		this._children.push(child)
+		this._children.add(child)
 		child.setParent(this)
 	}
 
+	/**
+	 * removes a child
+	 * @param child
+	 */
 	public removeChild(child: Leaf): void {
-		this._children.splice(this._children.indexOf(child), 1)
+		this._children.delete(child)
 	}
 
-	// sets the parent of this leaf
+	/**
+	 * set the parent of this leaf
+	 * @param parent
+	 */
 	public setParent(parent: Leaf): void {
 		this._parent = parent
 	}
 
-	// gets the parent of this leaf
+	/**
+	 * @return parent of this leaf
+	 */
 	public getParent(): Leaf {
 		return this._parent
 	}
 
+	/**
+	 * iterates up through the tree, yielding each leaf
+	 */
 	public* parents(): IterableIterator<Leaf> {
 		let found: Leaf = this
 		while((found = found.getParent()) != undefined) {
@@ -42,7 +64,9 @@ class Leaf {
 		}
 	}
 
-	// gets all the children under this node
+	/**
+	 * iterates down the tree, yielding each child and their child
+	 */
 	public* children(): IterableIterator<Leaf> {
 		// what the fuck is this code
 		for(let leaf of this._children) {
@@ -57,10 +81,16 @@ class Leaf {
 }
 
 export default class ExtensionTree {
-	public static classMap: any = {} // addedClasses[string] = Leaf
+	public static classMap: {
+		[index: string]: Leaf
+	} = {}
 	public static classes: any[] = []
 	
-	// adds an extended class to our extension tree
+	/**
+	 * adds a class to the extension tree
+	 * @param parentClass super class
+	 * @param childClass child class
+	 */
 	public static addExtendedClass(parentClass: any, childClass: any): void {
 		// if the child class already exists in the extension tree, then don't create a new leaf for it
 		let childLeaf: Leaf
@@ -89,7 +119,10 @@ export default class ExtensionTree {
 		this.classes.push(childClass)
 	}
 
-	// finds the leaf based on the given class name
+	/**
+	 * finds a leaf based on the specified class
+	 * @param inputClass
+	 */
 	public static getLeaf(inputClass: any): Leaf {
 		return this.classMap[inputClass.name]
 	}

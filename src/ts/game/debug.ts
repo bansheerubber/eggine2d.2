@@ -188,8 +188,12 @@ export default class Debug {
 		this.text.message = message.join("\n")
 	}
 
-	// determines how fast our JS environment is by performing some tests. returns a number representing the results of the tests. lower number is better
-	// note: does not equate to processor speed, but allows us to predict how long rendering/ticking will take
+	/** 
+	 * determines how fast our JS environment is by performing some tests. returns a number representing the results of the tests. lower number is better
+	 * <pre>
+	 * note: does not equate to processor speed, but allows us to predict how long rendering/ticking will take
+	 * </pre>
+	*/
 	public getJSSpeed(): number {
 		let start = performance.now()
 		let amount = 5000000 // 5,000,000. good amount because it won't stress computers too much but will still provide accurate results

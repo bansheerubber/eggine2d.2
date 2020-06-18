@@ -26,18 +26,32 @@ export default class Collidable extends GameObject implements MovingPhysical {
 		return this.body.angle
 	}
 
+	/**
+	 * rotation of the collidable
+	 */
 	public set rotation(value: number) {
 		Matter.Body.setAngle(this.body, value)
 	}
 
+	/**
+	 * sets position of the collidable
+	 * @param vector world coordinates
+	 */
 	public setPosition(vector: Vector): void {
 		Matter.Body.setPosition(this.body, vector.toMatter())
 	}
 
+	/**
+	 * @return world coordinates
+	 */
 	public getPosition(): Vector {
 		return new Vector(this.body.position.x, this.body.position.y)
 	}
 
+	/**
+	 * sets the velocity of the collidable
+	 * @param vector
+	 */
 	public setVelocity(vector: Vector): void {
 		Matter.Body.setVelocity(this.body, vector.toMatter())
 	}

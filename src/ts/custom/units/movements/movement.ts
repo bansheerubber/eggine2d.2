@@ -45,14 +45,55 @@ export default abstract class Movement extends RemoteObject {
 		}
 	}
 
-	public abstract getNextHex(): Hex // the hex we're moving to the next turn
-	public abstract fix(): void // fixes the move by resolving collisions
-	public abstract async move(): Promise<void> // moves the unit to the tile
-	public abstract prepare(): void // prepares the move by adding the unit to the destination tile's arrival array
-	public abstract finish(): void // finishes the move phase
-	public abstract hover(hex: Hex): void // called when a unit is selected and we hover over a tile
-	public abstract select(hex: Hex): void // called when a unit is selected and the user clicks their mouse (to add a tile to move to)
-	public abstract isDone(): boolean // whether or not the unit is done moving in this move phase
-	public abstract show(): void // show the places we can move to
+	/**
+	 * the hex we're moving to the next turn
+	 */
+	public abstract getNextHex(): Hex
+
+	/**
+	 * fixes our move by resolving collisions with other units
+	 */
+	public abstract fix(): void
+
+	/**
+	 * mvoes the unit to its desierd tile
+	 */
+	public abstract async move(): Promise<void>
+
+	/**
+	 * prepares the move by adding the unit to the destination tile's arrival array
+	 */
+	public abstract prepare(): void
+
+	/**
+	 * called when we are finished moving
+	 */
+	public abstract finish(): void
+
+	/**
+	 * called when a unit is selected and we hover over a tile
+	 * @param hex the tile the user hovered over
+	 */
+	public abstract hover(hex: Hex): void
+
+	/**
+	 * called when the unit is selected and the user adds a tile to thier move list
+	 * @param hex the tile the user selected
+	 */
+	public abstract select(hex: Hex): void
+
+	/**
+	 * @return whether or not the unit is done moving in this move phase
+	 */
+	public abstract isDone(): boolean
+
+	/**
+	 * show the places we can move to
+	 */
+	public abstract show(): void
+
+	/**
+	 * hide the places we can move to
+	 */
 	public abstract hide(): void // hide the places we can move to
 }

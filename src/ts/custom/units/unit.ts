@@ -57,14 +57,23 @@ export default abstract class Unit extends RemoteObject {
 		}
 	}
 
+	/**
+	 * called when the user clicks on us
+	 */
 	public onSelected(): void {
 		this.movement.show()
 	}
 
+	/**
+	 * called when the user clicks off of us
+	 */
 	public onDeSelected(): void {
 		this.movement.hide()
 	}
 
+	/**
+	 * the hex we're on. setting this updates the sprite's position
+	 */
 	public set hex(hex: Hex) {
 		this.hex_ = hex
 
@@ -82,10 +91,17 @@ export default abstract class Unit extends RemoteObject {
 		return this.hex_
 	}
 
+	/**
+	 * sets our sprites position independent of the hex we're on
+	 * @param position world coords for where our sprite should move to
+	 */
 	public setSpritePosition(position: Vector): void {
 		this.sprite?.setPosition(position)
 	}
 
+	/**
+	 * @return world coords for where our sprite is
+	 */
 	public getSpritePosition(): Vector {
 		return this.sprite?.getPosition()
 	}

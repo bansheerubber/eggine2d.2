@@ -18,6 +18,12 @@ export default class Gamemode extends RemoteObject {
 		this.game.gamemode = this
 	}
 
+	/**
+	 * creates a client class
+	 * @param game
+	 * @param websocket client's websocket
+	 * @param request the client's connection request
+	 */
 	public createClientClass(game: Game, websocket?: any, request?: any): Client {
 		return new this.clientClass(game, websocket, request)
 	}

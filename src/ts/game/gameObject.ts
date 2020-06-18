@@ -16,16 +16,27 @@ export default abstract class GameObject {
 		this.gameObjectOptions = gameObjectOptions
 	}
 	
-	// called every frame, deltaTime is in seconds
+	/**
+	 * called every frame if we can tick
+	 * @param deltaTime seconds
+	 */
 	public tick(deltaTime: number) {
 		
 	}
 
-	// schedule a call with Scheduler
+	/**
+	 * schedule a call with the Scheduler
+	 * @param time amount of seconds or frames until method is called
+	 * @param call the method that will be called on this object
+	 * @param args the args supplied to the method
+	 */
 	public schedule(time: number | Frames, call: Function, ...args: any[]): ScheduleObject {
 		return this.game.ticker.scheduler.schedule(time, call, args, this)
 	}
 
+	/**
+	 * whether or not we can tick
+	 */
 	public get canTick() {
 		return this.gameObjectOptions.canTick == undefined ? true : this.gameObjectOptions.canTick
 	}

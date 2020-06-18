@@ -34,7 +34,10 @@ export class ScheduleObject {
 		this.scheduler = scheduler
 	}
 
-	// returns true if we execute the call, false if we didn't
+	/**
+	 * returns true if we executed the call, false if we didn't
+	 * @param currentTime
+	 */
 	public tick(currentTime: number): boolean {
 		this.elapsedFrames++
 
@@ -51,21 +54,30 @@ export class ScheduleObject {
 		}
 	}
 
+	/**
+	 * execute the call
+	 */
 	public execute(): void {
 		this.resolve(this.call.apply(this.owner, this.args))
 	}
 
-	// when this is finished, the promise will be resolved with the return value of our call
+	/**
+	 * when this is finished, the promise will be resolved with the return value of our call
+	 */
 	public async finished(): Promise<any> {
 		return this.promise
 	}
 
-	// returns true if we're still pending
+	/**
+	 * @return true if we're still pending
+	 */
 	public isPending(): boolean {
 		return this.scheduler.isPending(this)
 	}
 
-	// cancels us
+	/**
+	 * cancels us
+	 */
 	public cancel(): void {
 		return this.scheduler.cancel(this)
 	}
@@ -97,24 +109,43 @@ export default class Scheduler {
 		}
 	}
 
+	/**
+	 * schedule a call for an owner
+	 * @param time seconds
+	 * @param call called on owner
+	 * @param args args supplied to call
+	 * @param owner
+	 */
 	public schedule(time: number | Frames, call: Function, args: any[], owner?: {}): ScheduleObject {
 		let scheduleObject = new ScheduleObject(this, owner, call, args, time)
 		this.scheduleObjects.add(scheduleObject)
 		return scheduleObject
 	}
 
+	/**
+	 * schedule a call for a function
+	 * @param time seconds
+	 * @param call not attached to a context
+	 * @param args args supplied to call
+	 */
 	public static schedule(time: number | Frames, call: Function, ...args: any[]): ScheduleObject {
 		let scheduleObject = new ScheduleObject(this.activeScheduler, undefined, call, args, time)
 		this.activeScheduler.scheduleObjects.add(scheduleObject)
 		return scheduleObject
 	}
 
-	// removes the schedule object from our array
+	/**
+	 * removes the schedule object from our array
+	 * @param scheduleObject
+	 */
 	public cancel(scheduleObject: ScheduleObject): void {
 		this.scheduleObjects.delete(scheduleObject)
 	}
 
-	// if the input schedule object is pending, then we return true. if not, then false
+	/**
+	 * @return true if the input schedule is pending
+	 * @param scheduleObject 
+	 */
 	public isPending(scheduleObject: ScheduleObject): boolean {
 		return this.scheduleObjects.has(scheduleObject)
 	}

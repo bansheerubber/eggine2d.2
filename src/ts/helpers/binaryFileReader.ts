@@ -12,7 +12,9 @@ export default class BinaryFileReader {
 		this.fileName = fileName
 	}
 
-	// reads file using fs or XMLHttpRequest based on client or not
+	/**
+	 * reads file using fs if we're the server, XMLHTTPRequest if we're the client
+	 */
 	public async readFile(): Promise<Uint8Array> {
 		return new Promise<Uint8Array>((resolve, reject) => {
 			if(fs) {
@@ -64,24 +66,33 @@ export default class BinaryFileReader {
 		})
 	}
 
-	// if we're at the end of the file or not
+	/**
+	 * whether or not we're at the end of the file
+	 */
 	public isEOF(): boolean {
 		return this.byteIndex >= this.bytes.length
 	}
 	
-	// reads a byte from our data
+	/**
+	 * reads a byte from our data
+	 */
 	public readByte(): number {
 		this.byteIndex++
 		return this.bytes[this.byteIndex - 1]
 	}
 	
-	// reads an int from the bytes
+	/**
+	 * reads a 32 bit number from our bytes
+	 */
 	public readInt(): number {
 		this.byteIndex += 4
 		return this.bytes[this.byteIndex - 4] << 24 | this.bytes[this.byteIndex - 3] << 16 | this.bytes[this.byteIndex - 2] << 8 | this.bytes[this.byteIndex - 1]
 	}
 	
-	// reads x amount of bytes into a new array
+	/**
+	 * reads an aomunt of bytes into a new array
+	 * @param amount
+	 */
 	public readBytesIntoArray(amount): number[] {
 		let array = []
 		for(let i = 0; i < amount; i++) {
@@ -91,11 +102,17 @@ export default class BinaryFileReader {
 	}
 	
 	// reads a character from our bytes array
+
+	/**
+	 * @return a character from our bytes array
+	 */
 	public readChar(): string {
 		return String.fromCharCode(this.readByte())
 	}
 	
-	// reads the first int, and treats that as a string length. reads that many bytes forwards to construct a string
+	/**
+	 * reads the first int, and treats that as a string length. reads that amount bytes forwards to construct a string
+	 */
 	public readString(): string {
 		let length = this.readInt()
 		let output = ""

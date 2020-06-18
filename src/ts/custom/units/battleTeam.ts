@@ -18,6 +18,10 @@ export default class BattleTeam extends RemoteObject {
 		(this.game.gamemode as BattleGamemode).teams.add(this)
 	}
 
+	/**
+	 * determines if we can attack, accepts a number of types of arguments to check
+	 * @param unit unit or team
+	 */
 	public isEnemy(unit: Unit | BattleTeam): boolean {
 		return true
 	}

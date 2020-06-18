@@ -41,6 +41,9 @@ export default class BattleGamemode extends Gamemode {
 		this.units = []
 	}
 
+	/**
+	 * handles the unit's move phase
+	 */
 	public async movePhase(): Promise<void> {
 		this.phase = BattlePhase.MOVE
 		
@@ -95,8 +98,12 @@ export default class BattleGamemode extends Gamemode {
 		}
 	}
 
-	// returns true if at least one unit has a bad next move
-	private fixMoves(): void { 
+	/**
+	 * fix all unit's moves by resolving collisions
+	 * @return the amount of units we fixed
+	 */
+	private fixMoves(): number { 
+		let fixedCount = 0
 		let nextMoveBad = true
 		// keep fixing moves until we have no moves left to fix
 		do {
@@ -105,12 +112,17 @@ export default class BattleGamemode extends Gamemode {
 				if(unit.movement.isNextMoveBad()) {
 					nextMoveBad = true
 					unit.movement.fix()
+					fixedCount++
 				}
-			}	
+			}
 		}
 		while(nextMoveBad)
+		return fixedCount
 	}
 
+	/**
+	 * have all units do their attacks
+	 */
 	public async attackPhase(): Promise<void> {
 		this.phase = BattlePhase.ATTACK
 	}

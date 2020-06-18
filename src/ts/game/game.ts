@@ -65,10 +65,16 @@ export default class Game {
 		Network.setGame(this)
 	}
 
+	/**
+	 * starts the ticker
+	 */
 	public start(): void {
 		this.ticker.start()
 	}
 
+	/**
+	 * stops the ticker
+	 */
 	public stop(): void {
 		this.ticker.stop()
 	}

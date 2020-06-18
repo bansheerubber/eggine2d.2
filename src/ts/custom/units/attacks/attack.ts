@@ -26,12 +26,19 @@ export default abstract class Attack extends RemoteObject {
 		this.unit = unit
 	}
 
-	// whether or not the attack can be performed. is checked basically at all times
+	/**
+	 * whether or not we can perform an attack on a unit. detects if there is an enemy. if there's no enemy, then don't fire
+	 */
 	public abstract canAttack(): boolean
 
-	// the attack we perform, which can be asynchronous to account for camera movement/etc
+	/**
+	 * attack an enemy we've found within our range
+	 * @param enemy the enemy to attack
+	 */
 	public abstract async attack(enemy: Unit): Promise<boolean>
 
-	// reloads the attack, performed at the end of a turn. can be asynchronous
+	/**
+	 * reloads the attack, performed at the end of a trun
+	 */
 	public abstract async reload(): Promise<void>
 }

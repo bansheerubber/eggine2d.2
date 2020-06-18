@@ -10,7 +10,15 @@ export default class VectorInterpolation extends GameObject {
 	public start: Vector
 	public end: Vector
 	public time: number
+
+	/**
+	 * called for each step
+	 */
 	public callback: callback
+
+	/**
+	 * called when we're finished
+	 */
 	public endCallback: callback
 
 	protected interpolatedVector: Vector = new Vector(0, 0)

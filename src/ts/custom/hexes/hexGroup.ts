@@ -23,29 +23,52 @@ export default class HexGroup extends GameObject {
 		}
 	}
 
+	/**
+	 * add a hex to our set
+	 * @param hex
+	 */
 	public add(hex: Hex): void {
 		this.hexes.add(hex)
 	}
 
+	/**
+	 * remove a hex from our set
+	 * @param hex
+	 */
 	public remove(hex: Hex): void {
 		this.hexes.delete(hex)
 	}
 
+	/**
+	 * whether or not the specified hex is included in our set
+	 * @param hex
+	 */
 	public includes(hex: Hex): boolean {
 		return this.hexes.has(hex)
 	}
 
+	/**
+	 * @return an iterable of all hexes in our set
+	 */
 	public all(): Iterable<Hex> {
 		return this.hexes.values()
 	}
 
+	/**
+	 * set the shading of all of our hexes
+	 * @param kind the type of shading
+	 * @param enabled whether or not the type of shading is visible
+	 */
 	public setShading(kind: number, enabled: boolean): void {
 		for(let hex of this.all()) {
 			hex.setShading(kind, enabled)
 		}
 	}
 
-	// origin is in hex coordinates
+	/**
+	 * adds a radius of hexes to our set
+	 * @param origin center of the radius in hex coords
+	 */
 	public addRadius(origin: Vector, radius: number) {
 		let map = (this.game.gamemode as BattleGamemode | OverworldGamemode).hexMap
 		for(let x = origin.x - radius; x <= origin.x + radius; x++) {
@@ -63,9 +86,13 @@ export default class HexGroup extends GameObject {
 		}
 	}
 
-	// returns a bitmask representing how surrounded the hex is by hexes in the same list. 1 is for is surrounded, 0 is for not surrounded. starts from side 0 at the rightmost bit and continues leftwards
-	// example bitmask: 0  0  1  1  1  0
-	//				   nw sw  s se ne  n
+	/**
+	 * returns a bitmask representing how surrounded the hex is by hexes in the same HexGroup. starts from side 0 at the right and continues leftwards
+	 * <pre>
+	 * example bitmask: 0(nw) 0(sw) 1(s) 1(se) 1(ne) 0(n)
+	 * </pre>
+	 * @param hex 
+	 */
 	public getHexSurroundedBitmask(hex: Hex): number {
 		let bitmask = 0
 		// starting from top because we need to frontload the bits
@@ -80,7 +107,9 @@ export default class HexGroup extends GameObject {
 		return bitmask
 	}
 
-	// draws an outline around the hex list
+	/**
+	 * draws an outline around the hexes contained in our set
+	 */
 	public drawOutline(): void {
 		this.clearOutline()
 
@@ -104,6 +133,9 @@ export default class HexGroup extends GameObject {
 		}
 	}
 
+	/**
+	 * clears the outline if there is one
+	 */
 	public clearOutline(): void {
 		for(let outline of this.outline) {
 			outline.destroy()

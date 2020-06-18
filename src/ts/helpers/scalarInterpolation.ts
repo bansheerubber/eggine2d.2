@@ -10,7 +10,15 @@ export default class ScalarInterpolation extends GameObject {
 	public start: number
 	public end: number
 	public time: number
+
+	/**
+	 * called each step
+	 */
 	public callback: callback
+
+	/**
+	 * called when we're complete
+	 */
 	public endCallback: callback
 
 	public timeElapsed: number = 0

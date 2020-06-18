@@ -26,17 +26,24 @@ export default class GameTicker {
 		this.game = game
 	}
 
-	// starts ticking if we weren't already
+	/**
+	 * starts ticking if we weren't already
+	 */
 	public start(): void {
 		this.isTicking = true
 		this.tick()
 	}
 
-	// stops ticking if we were ticking already
+	/**
+	 * stops ticking if we were ticking already
+	 */
 	public stop(): void {
 		this.isTicking = false
 	}
 
+	/**
+	 * loop through all game objects and tick. also render and run Matter.js tick
+	 */
 	public tick(): void {
 		let startTick = performance.now()
 		let deltaTime = (startTick - this.lastTick) / 1000
@@ -94,6 +101,10 @@ export default class GameTicker {
 		this.lastTotalDeltaTime = totalDeltaTime
 	}
 
+	/**
+	 * ticks all game objects
+	 * @param deltaTime seconds
+	 */
 	private tickObjects(deltaTime: number): number {
 		let tickedCount = 0
 		for(let gameObject of this.objects.values()) {

@@ -58,7 +58,11 @@ export default abstract class Hex extends RemoteObject {
 		}
 	}
 
-	// sets the shading of the sprite
+	/**
+	 * sets the shading of the sprite
+	 * @param kind the type of shading we want
+	 * @param enabled whether or not the type of shading is visible
+	 */
 	public setShading(kind: number, enabled: boolean): void {
 		if(this.shadingSprites[kind] === undefined && enabled) {
 			this.shadingSprites[kind] = new Sprite(this.game, Hex.shadingResources[kind])
@@ -77,6 +81,10 @@ export default abstract class Hex extends RemoteObject {
 		}
 	}
 
+	/**
+	 * sets the position of the hex
+	 * @param position hex coords
+	 */
 	public setPosition(position: Vector): void {
 		// reset the position of this hex in our map
 		if(this.map) {
@@ -90,25 +98,40 @@ export default abstract class Hex extends RemoteObject {
 		this.sprite?.setPosition(this.sprite.getPosition().set(x, y))
 	}
 
+	/**
+	 * @return hex coords
+	 */
 	public getPosition(): Vector {
 		return this.position
 	}
 
+	/**
+	 * @return world coords
+	 */
 	public getSpritePosition(): Vector {
 		let vector = new Vector(0, 0)
 		let result = Hex.hexPositionToWorldPosition(this.position.x, this.position.y)
 		return vector.set(result[0], result[1])
 	}
 
+	/**
+	 * called when a user clicks on us
+	 */
 	public onSelected(): void {
 		this.unit?.onSelected()
 	}
 
+	/**
+	 * called when a user clicks off of us
+	 */
 	public onDeSelected(): void {
 		this.unit?.onDeSelected()
 	}
 
-	// returns the hex on the specified side of the hex
+	/**
+	 * returns the ex on the specified side of the hex
+	 * @param index
+	 */
 	public getAdjacent(index: number): Hex {
 		let x = this.position.x
 		let y = this.position.y
@@ -178,6 +201,10 @@ export default abstract class Hex extends RemoteObject {
 		}
 	}
 
+	/**
+	 * @param hex the hex we want to check
+	 * @return true if the hex is nex tto us
+	 */
 	public isAdjacent(hex: Hex): boolean {
 		for(let i = 0; i < 6; i++) {
 			if(hex == this.getAdjacent(i)) {
@@ -200,6 +227,9 @@ export default abstract class Hex extends RemoteObject {
 		return this.unit_
 	}
 
+	/**
+	 * converts hex coordinates to world coordinates
+	 */
 	public static hexPositionToWorldPosition(x: number, y: number): number[] {
 		let ox = x * Hex.width - Hex.xOffset * x
 		let oy = y * Hex.height - Hex.outline * y + x % 2 * Hex.height / 2 - x % 2

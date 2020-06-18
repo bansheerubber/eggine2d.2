@@ -13,6 +13,9 @@ export class HSVColor {
 		this.a = a
 	}
 
+	/**
+	 * converts HSV to RGB
+	 */
 	public toRGB(): RGBColor {
 		// do some linear interpolation trickery to find the RGB values based on this.h
 		let hR = Math.max(0, Math.min(1, Math.abs(-6 * (this.h - 3 / 6)) - 1))  // max(0, min(1,  |-6 * (h - (3 / 6))| - 1))
@@ -56,12 +59,16 @@ export class RGBColor {
 		this.a = a
 	}
 
-	// converts the color to a hex number (doesn't include alpha, also doesn't look like 0x104156 or whatever. it'll be the base 10 representation)
+	/**
+	 * converts the color to a number
+	 */
 	public toHex(): number {
 		return Math.floor(this.r * 255) << 16 | Math.floor(this.g * 255) << 8 | Math.floor(this.b * 255) << 0
 	}
 
-	// converts this to a css color. if a == 1, then it will use the hex. if a < 1, then it will do rgab(r, g, b, a)
+	/**
+	 * converts this to a css color. if a == 1, then it will use the hex. if a < 1, then it will do rgab(r, g, b, a)
+	 */
 	public toCSSColor(): string {
 		if(this.a == 1) {
 			return `#${this.toHex().toString(16)}`
@@ -71,7 +78,9 @@ export class RGBColor {
 		}
 	}
 
-	// converts this RGB color to a HSV color
+	/**
+	 * converts RGB to HSV
+	 */
 	public toHSV(): HSVColor {
 		let magic = 2 * Math.sqrt(this.r**2 + this.b**2 + this.g**2 - this.g * this.r - this.b * this.g - this.b * this.r)
 		return new HSVColor(Math.atan2(this.b - this.g, Math.sqrt((2 * this.r - this.b - this.g) / 3)),
@@ -79,7 +88,12 @@ export class RGBColor {
 			(this.r + this.b + this.g + magic) / 3, this.a)
 	}
 
-	// interpolates between two colors
+	/**
+	 * interpolates between two colors
+	 * @param color1 starting color
+	 * @param color2 ending color
+	 * @param percent how far along to interpolate
+	 */
 	public static interpolate(color1: RGBColor, color2: RGBColor, percent: number): RGBColor {
 		return new RGBColor((color1.r * (1 - percent)) + color2.r * percent, 
 			(color1.g * (1 - percent)) + color2.g * percent, 
@@ -87,7 +101,10 @@ export class RGBColor {
 			(color1.a * (1 - percent)) + color2.a * percent)
 	}
 
-	// create a color from a hex or from a CSS color
+	/**
+	 * create a color from a number or from a CSS color
+	 * @param input number or CSS color string
+	 */
 	public static from(input: number | string): RGBColor {
 		if(typeof input == "number") {
 			let r = ((input) & (255 << 0)) / (255 << 0)

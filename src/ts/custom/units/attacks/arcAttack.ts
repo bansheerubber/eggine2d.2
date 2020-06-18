@@ -30,13 +30,20 @@ export default class ArcAttack extends Attack {
 		this.hexes = new HexGroup(this.game)
 	}
 
-	// tiles is the amount of tiles our arc covers, radius is how far it reaches outwards
+	/**
+	 * sets our arc to the specified arguments
+	 * @param hexes amount of hexes the arc spans
+	 * @param radius how far outwards the arc reaches
+	 */
 	public setArc(hexes: number, radius: number): void {
 		this.arcHexes = hexes
 		this.arcRadius = radius
 	}
 
-	// rotate the arc to the orientation we want
+	/**
+	 * rotate the attack to the orientation we want. centers the arc around this orientation
+	 * @param orientation orientation index
+	 */
 	public rotate(orientation: number): void {
 		let start = Math.PI / 2 // 90 deg
 		if(this.arcHexes % 2 == 0) { // if we have an even number of arcs, we have to do something special for our start angle
@@ -65,7 +72,6 @@ export default class ArcAttack extends Attack {
 		this.hexes.setShading(2, true)
 	}
 
-	// whether or not we can perform an attack on a unit or not
 	public canAttack(): boolean {
 		if(this.hasAttacked) {
 			return false
@@ -79,11 +85,10 @@ export default class ArcAttack extends Attack {
 		return false
 	}
 
-	// attack the unit we've found
 	public async attack(): Promise<boolean> {
 		for(let hex of this.hexes.all()) {
 			if(this.unit.team.isEnemy(hex.unit)) {
-
+				// TODO-damage
 			}
 		}
 		this.hasAttacked = true

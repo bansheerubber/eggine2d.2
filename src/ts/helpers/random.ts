@@ -1,4 +1,7 @@
 export default class Random {
+	/**
+	 * returns a random number from 0-1
+	 */
 	public static random: () => number
 	private static _seed: number
 	
